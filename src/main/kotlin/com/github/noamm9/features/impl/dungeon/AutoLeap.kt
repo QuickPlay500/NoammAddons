@@ -20,7 +20,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.minecraft.world.entity.decoration.ArmorStand
 
-object AutoLeap: Feature("Automated Leap") {
+object AutoLeap: Feature("Auto Leap") {
     private val leapTargets = listOf(
         DungeonClass.Archer,
         DungeonClass.Mage,
@@ -33,20 +33,20 @@ object AutoLeap: Feature("Automated Leap") {
     private var stormEnraged = false
     private var stormDead = false
 
-    private val witherLeapSetting by ToggleSetting("Leap after a wither key pick up", false)
-    private val targetWitherKeyLeap by DropdownSetting("Leap Target", 4, leapTargets.map { it.name })
+    private val witherLeapSetting by ToggleSetting("Wither Key", false)
+    private val targetWitherKeyLeap by DropdownSetting("Target", 4, leapTargets.map { it.name })
 
-    private val maxorDeadLeapSetting by ToggleSetting("Leap after Maxor died",false)
-    private val targetMaxorDeadLeap by DropdownSetting("Leap Target",3, leapTargets.map { it.name })
+    private val maxorDeadLeapSetting by ToggleSetting("Maxor dead",false)
+    private val targetMaxorDeadLeap by DropdownSetting("Target",3, leapTargets.map { it.name })
 
-    private val stormCrushLeapSetting by ToggleSetting("Leap after first Storm crush",false)
-    private val targetStormCrushLeap by DropdownSetting("Leap Target",4, leapTargets.map { it.name })
+    private val stormCrushLeapSetting by ToggleSetting("Storm Crushed",false)
+    private val targetStormCrushLeap by DropdownSetting("Target",4, leapTargets.map { it.name })
 
-    private val stormEnragedLeapSetting by ToggleSetting("Leap after first pillar",false)
-    private val targetStormEnragedLeap by DropdownSetting("Leap Target",2, leapTargets.map { it.name })
+    private val stormEnragedLeapSetting by ToggleSetting("Storm Enraged",false)
+    private val targetStormEnragedLeap by DropdownSetting("Target",2, leapTargets.map { it.name })
 
-    private val stormDeadLeapSetting by ToggleSetting("Leap after Storm died",false)
-    private val targetStormDeadLeap by DropdownSetting("Leap Target",4, leapTargets.map { it.name })
+    private val stormDeadLeapSetting by ToggleSetting("Storm dead",false)
+    private val targetStormDeadLeap by DropdownSetting("Target",4, leapTargets.map { it.name })
 
 
     override fun init() {
