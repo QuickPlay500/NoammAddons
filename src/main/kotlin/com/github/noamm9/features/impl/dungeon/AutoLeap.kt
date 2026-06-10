@@ -5,6 +5,7 @@ package com.github.noamm9.features.impl.dungeon
 import com.github.noamm9.event.impl.BossBarUpdateEvent
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.EntityUnloadEvent
+import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
@@ -59,6 +60,9 @@ object AutoLeap: Feature("Automated Leap") {
         }
 
         // Maxor
+        register<WorldChangeEvent> {
+            maxorDead = false
+        }
         register<BossBarUpdateEvent> {
             if (!maxorDeadLeapSetting.value) return@register
             if (dungeonFloorNumber != 7 && !inBoss) return@register
