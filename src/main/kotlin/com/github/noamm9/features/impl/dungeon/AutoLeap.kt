@@ -86,9 +86,9 @@ object AutoLeap: Feature("Automated Leap") {
         register<ChatMessageEvent> {
             if (!stormDeadLeapSetting.value || !stormEnragedLeapSetting.value || !stormCrushLeapSetting.value || dungeonFloorNumber != 7 || !inBoss) return@register
             when (event.unformattedText) {
-                "[BOSS] Storm: Oof", "[BOSS] Storm: Ouch, that hurt!" -> if(stormCrushLeapSetting.value && !stormCrushed){scope.launch { performLeap(targetStormCrushLeap.value)}}
-                "[BOSS] Storm: I should have known that I stood no chance." -> if(stormEnragedLeapSetting.value && !stormDead){scope.launch { performLeap(targetStormDeadLeap.value)}}
-                "[BOSS] Storm: BEGONE PILLAR!","[BOSS] Storm: This factory is too small for me!","[BOSS] Storm: Slowing me down will be your greatest accomplishment!","[BOSS] Storm: THAT WAS ONLY IN MY WAY!" -> if (stormEnragedLeapSetting.value && !stormEnraged){scope.launch { performLeap(targetStormEnragedLeap.value) }}
+                "[BOSS] Storm: Oof", "[BOSS] Storm: Ouch, that hurt!" -> if(stormCrushLeapSetting.value && !stormCrushed){stormCrushed = true; scope.launch { performLeap(targetStormCrushLeap.value)}}
+                "[BOSS] Storm: I should have known that I stood no chance." -> if(stormEnragedLeapSetting.value && !stormDead){stormDead = true; scope.launch { performLeap(targetStormDeadLeap.value)}}
+                "[BOSS] Storm: BEGONE PILLAR!","[BOSS] Storm: This factory is too small for me!","[BOSS] Storm: Slowing me down will be your greatest accomplishment!","[BOSS] Storm: THAT WAS ONLY IN MY WAY!" -> if (stormEnragedLeapSetting.value && !stormEnraged){stormEnraged = true; scope.launch { performLeap(targetStormEnragedLeap.value) }}
             }
         }
 
