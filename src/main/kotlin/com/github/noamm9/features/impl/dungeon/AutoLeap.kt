@@ -28,13 +28,16 @@ object AutoLeap: Feature("Automated Leap") {
         DungeonClass.Healer,
         DungeonClass.Tank
     )
+    private var maxorDead = false
+    private var stormCrushed = false
+    private var stormEnraged = false
+    private var stormDead = false
 
     private val witherLeapSetting by ToggleSetting("Leap after a wither key pick up", false)
     private val targetWitherKeyLeap by DropdownSetting("Leap Target", 4, leapTargets.map { it.name })
 
     private val maxorDeadLeapSetting by ToggleSetting("Leap after Maxor died",false)
     private val targetMaxorDeadLeap by DropdownSetting("Leap Target",3, leapTargets.map { it.name })
-    private var maxorDead = false
 
     private val stormCrushLeapSetting by ToggleSetting("Leap after first Storm crush",false)
     private val targetStormCrushLeap by DropdownSetting("Leap Target",4, leapTargets.map { it.name })
@@ -47,6 +50,12 @@ object AutoLeap: Feature("Automated Leap") {
 
 
     override fun init() {
+        register<WorldChangeEvent> {
+            maxorDead = false
+            stormCrushed = false
+            stormEnraged = false
+            stormDead = false
+        }
 
         // Wither Key
         register<EntityUnloadEvent> {
@@ -60,9 +69,6 @@ object AutoLeap: Feature("Automated Leap") {
         }
 
         // Maxor
-        register<WorldChangeEvent> {
-            maxorDead = false
-        }
         register<BossBarUpdateEvent> {
             if (!maxorDeadLeapSetting.value) return@register
             if (dungeonFloorNumber != 7 && !inBoss) return@register
@@ -80,9 +86,9 @@ object AutoLeap: Feature("Automated Leap") {
         register<ChatMessageEvent> {
             if (!stormDeadLeapSetting.value || !stormEnragedLeapSetting.value || !stormCrushLeapSetting.value || dungeonFloorNumber != 7 || !inBoss) return@register
             when (event.unformattedText) {
-                "[BOSS] Storm: Oof", "[BOSS] Storm: Ouch, that hurt!" -> if(stormCrushLeapSetting.value){scope.launch { performLeap(targetStormCrushLeap.value)}}
-                "[BOSS] Storm: I should have known that I stood no chance." -> if(stormEnragedLeapSetting.value){scope.launch { performLeap(targetStormDeadLeap.value)}}
-                "[BOSS] Storm: BEGONE PILLAR!","[BOSS] Storm: This factory is too small for me!","[BOSS] Storm: Slowing me down will be your greatest accomplishment!","[BOSS] Storm: THAT WAS ONLY IN MY WAY!" -> if (stormEnragedLeapSetting.value){scope.launch { performLeap(targetStormEnragedLeap.value) }}
+                "[BOSS] Storm: Oof", "[BOSS] Storm: Ouch, that hurt!" -> if(stormCrushLeapSetting.value && !stormCrushed){scope.launch { performLeap(targetStormCrushLeap.value)}}
+                "[BOSS] Storm: I should have known that I stood no chance." -> if(stormEnragedLeapSetting.value && !stormDead){scope.launch { performLeap(targetStormDeadLeap.value)}}
+                "[BOSS] Storm: BEGONE PILLAR!","[BOSS] Storm: This factory is too small for me!","[BOSS] Storm: Slowing me down will be your greatest accomplishment!","[BOSS] Storm: THAT WAS ONLY IN MY WAY!" -> if (stormEnragedLeapSetting.value && !stormEnraged){scope.launch { performLeap(targetStormEnragedLeap.value) }}
             }
         }
 
@@ -97,6 +103,7 @@ object AutoLeap: Feature("Automated Leap") {
         delay(50)
         PlayerUtils.swapToSlot(prevSlot)
     }
+
 }
 
 //#endif
