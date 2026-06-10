@@ -71,12 +71,12 @@ object AutoLeap: Feature("Auto Leap") {
         // Maxor
         register<BossBarUpdateEvent> {
             if (!maxorDeadLeapSetting.value) return@register
-            if (dungeonFloorNumber != 7 && !inBoss) return@register
+            if (dungeonFloorNumber != 7 || !inBoss) return@register
             if (event.progress > 0f) return@register
             val name = event.name.unformattedText
             val entry = DungeonListener.bossEntryTime?.ticks ?: return@register
 
-            if (name.contains("Maxor") && !maxorDead &&DungeonListener.currentTime - entry > 120) {
+            if (name.contains("Maxor") && !maxorDead && DungeonListener.currentTime - entry > 120) {
                 maxorDead = true
                 scope.launch { performLeap(targetMaxorDeadLeap.value) }
             }
@@ -84,7 +84,7 @@ object AutoLeap: Feature("Auto Leap") {
 
         // Storm
         register<ChatMessageEvent> {
-            if (!stormDeadLeapSetting.value || !stormEnragedLeapSetting.value || !stormCrushLeapSetting.value || dungeonFloorNumber != 7 || !inBoss) return@register
+            if ((!stormDeadLeapSetting.value && !stormEnragedLeapSetting.value && !stormCrushLeapSetting.value) || !inBoss || dungeonFloorNumber != 7) return@register
             when (event.unformattedText) {
                 "[BOSS] Storm: Oof", "[BOSS] Storm: Ouch, that hurt!" -> if(stormCrushLeapSetting.value && !stormCrushed){stormCrushed = true; scope.launch { performLeap(targetStormCrushLeap.value)}}
                 "[BOSS] Storm: I should have known that I stood no chance." -> if(stormEnragedLeapSetting.value && !stormDead){stormDead = true; scope.launch { performLeap(targetStormDeadLeap.value)}}
