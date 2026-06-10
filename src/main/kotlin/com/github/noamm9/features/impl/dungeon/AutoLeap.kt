@@ -34,19 +34,19 @@ object AutoLeap: Feature("Auto Leap") {
     private var stormDead = false
 
     private val witherLeapSetting by ToggleSetting("Wither Key", false)
-    private val targetWitherKeyLeap by DropdownSetting("Target", 4, leapTargets.map { it.name })
+    private val targetWitherKeyLeap by DropdownSetting("Target", 3, leapTargets.map { it.name })
 
     private val maxorDeadLeapSetting by ToggleSetting("Maxor dead",false)
-    private val targetMaxorDeadLeap by DropdownSetting("Target",3, leapTargets.map { it.name })
+    private val targetMaxorDeadLeap by DropdownSetting("Target",2, leapTargets.map { it.name })
 
     private val stormCrushLeapSetting by ToggleSetting("Storm Crushed",false)
-    private val targetStormCrushLeap by DropdownSetting("Target",4, leapTargets.map { it.name })
+    private val targetStormCrushLeap by DropdownSetting("Target",3, leapTargets.map { it.name })
 
     private val stormEnragedLeapSetting by ToggleSetting("Storm Enraged",false)
-    private val targetStormEnragedLeap by DropdownSetting("Target",2, leapTargets.map { it.name })
+    private val targetStormEnragedLeap by DropdownSetting("Target",1, leapTargets.map { it.name })
 
     private val stormDeadLeapSetting by ToggleSetting("Storm dead",false)
-    private val targetStormDeadLeap by DropdownSetting("Target",4, leapTargets.map { it.name })
+    private val targetStormDeadLeap by DropdownSetting("Target",3, leapTargets.map { it.name })
 
 
     override fun init() {
