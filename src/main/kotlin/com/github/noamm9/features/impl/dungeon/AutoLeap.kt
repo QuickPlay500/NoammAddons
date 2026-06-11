@@ -20,7 +20,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.minecraft.world.entity.decoration.ArmorStand
 
-object AutoLeap: Feature("Auto Leap") {
+object AutoLeap : Feature("Auto Leap") {
     private val leapTargets = listOf(
         DungeonClass.Archer,
         DungeonClass.Mage,
@@ -36,20 +36,21 @@ object AutoLeap: Feature("Auto Leap") {
     private val witherLeapSetting by ToggleSetting("Wither Key", false)
     private val targetWitherKeyLeap by DropdownSetting("Target", 3, leapTargets.map { it.name })
 
-    private val maxorDeadLeapSetting by ToggleSetting("Maxor dead",false)
-    private val targetMaxorDeadLeap by DropdownSetting("Target",2, leapTargets.map { it.name })
+    private val maxorDeadLeapSetting by ToggleSetting("Maxor dead", false)
+    private val targetMaxorDeadLeap by DropdownSetting("Target", 2, leapTargets.map { it.name })
 
-    private val stormCrushLeapSetting by ToggleSetting("Storm Crushed",false)
-    private val targetStormCrushLeap by DropdownSetting("Target",3, leapTargets.map { it.name })
+    private val stormCrushLeapSetting by ToggleSetting("Storm Crushed", false)
+    private val targetStormCrushLeap by DropdownSetting("Target", 3, leapTargets.map { it.name })
 
-    private val stormEnragedLeapSetting by ToggleSetting("Storm Enraged",false)
-    private val targetStormEnragedLeap by DropdownSetting("Target",1, leapTargets.map { it.name })
+    private val stormEnragedLeapSetting by ToggleSetting("Storm Enraged", false)
+    private val targetStormEnragedLeap by DropdownSetting("Target", 1, leapTargets.map { it.name })
 
-    private val stormDeadLeapSetting by ToggleSetting("Storm dead",false)
-    private val targetStormDeadLeap by DropdownSetting("Target",3, leapTargets.map { it.name })
+    private val stormDeadLeapSetting by ToggleSetting("Storm dead", false)
+    private val targetStormDeadLeap by DropdownSetting("Target", 3, leapTargets.map { it.name })
 
 
     override fun init() {
+
         register<WorldChangeEvent> {
             maxorDead = false
             stormCrushed = false
@@ -86,9 +87,17 @@ object AutoLeap: Feature("Auto Leap") {
         register<ChatMessageEvent> {
             if ((!stormDeadLeapSetting.value && !stormEnragedLeapSetting.value && !stormCrushLeapSetting.value) || !inBoss || dungeonFloorNumber != 7) return@register
             when (event.unformattedText) {
-                "[BOSS] Storm: Oof", "[BOSS] Storm: Ouch, that hurt!" -> if(stormCrushLeapSetting.value && !stormCrushed){stormCrushed = true; scope.launch { performLeap(targetStormCrushLeap.value)}}
-                "[BOSS] Storm: I should have known that I stood no chance." -> if(stormEnragedLeapSetting.value && !stormDead){stormDead = true; scope.launch { performLeap(targetStormDeadLeap.value)}}
-                "[BOSS] Storm: BEGONE PILLAR!","[BOSS] Storm: This factory is too small for me!","[BOSS] Storm: Slowing me down will be your greatest accomplishment!","[BOSS] Storm: THAT WAS ONLY IN MY WAY!" -> if (stormEnragedLeapSetting.value && !stormEnraged){stormEnraged = true; scope.launch { performLeap(targetStormEnragedLeap.value) }}
+                "[BOSS] Storm: Oof", "[BOSS] Storm: Ouch, that hurt!" -> if (stormCrushLeapSetting.value && !stormCrushed) {
+                    stormCrushed = true; scope.launch { performLeap(targetStormCrushLeap.value) }
+                }
+
+                "[BOSS] Storm: I should have known that I stood no chance.", " [BOSS] Storm: At least my son died by your hands. " -> if (stormDeadLeapSetting.value && !stormDead) {
+                    stormDead = true; scope.launch { performLeap(targetStormDeadLeap.value) }
+                }
+
+                "[BOSS] Storm: BEGONE PILLAR!", "[BOSS] Storm: This factory is too small for me!", "[BOSS] Storm: Slowing me down will be your greatest accomplishment!", "[BOSS] Storm: THAT WAS ONLY IN MY WAY!" -> if (stormEnragedLeapSetting.value && !stormEnraged) {
+                    stormEnraged = true; scope.launch { performLeap(targetStormEnragedLeap.value) }
+                }
             }
         }
 
