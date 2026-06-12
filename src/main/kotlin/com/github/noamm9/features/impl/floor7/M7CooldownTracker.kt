@@ -13,9 +13,9 @@ import net.minecraft.network.protocol.game.ClientboundSoundPacket
 object CooldownTracker: Feature("M7 Arch/Bers Ability Cooldown Tracker") {
     private val m7only by ToggleSetting("only show in m7 drags",true)
 
-    val rag = ItemStats("RAGNAROCK_AXE",400,200,false,400)
-    val tuba = ItemStats("WEIRDER_TUBA",400,600,false,400)
-    val badHealth = ItemStats("SWORD_OF_BAD_HEALTH",100,100,false,100)
+    val rag = ItemStats("RAGNAROCK_AXE",400,200, onCooldown = false, onAbility = false, lastUse = 400)
+    val tuba = ItemStats("WEIRDER_TUBA",400,600, onCooldown = false, onAbility = false, lastUse = 400)
+    val badHealth = ItemStats("SWORD_OF_BAD_HEALTH",100,100, onCooldown = false, onAbility = false, lastUse = 100)
 
     override fun init() {
 
@@ -58,9 +58,9 @@ object CooldownTracker: Feature("M7 Arch/Bers Ability Cooldown Tracker") {
         register<TickEvent.Start> {
             if (show()) return@register
 
-            rag.countAbilityTicks()
-            tuba.countAbilityTicks()
-            badHealth.countAbilityTicks()
+            rag.countTicks()
+            tuba.countTicks()
+            badHealth.countTicks()
         }
 
         hudElement("Ability Cooldown", shouldDraw = { true }) { ctx, example ->
@@ -79,22 +79,30 @@ data class ItemStats(
     val cooldownTicks: Int,
     val abilityTicks: Int,
     var onCooldown: Boolean,
+    var onAbility: Boolean,
     var lastUse: Int
 ){
     fun trigger(){
         lastUse = 0
         onCooldown = true
+        onAbility = true
     }
-    fun countAbilityTicks(){
-        if(onCooldown){
+    fun countTicks(){
+        if(onCooldown || onAbility){
             lastUse++
-            if (lastUse >= cooldownTicks){
+            if(lastUse >= cooldownTicks && lastUse >= abilityTicks){
                 reset()
+            }
+            else if (lastUse >= cooldownTicks){
+                onCooldown = false
+            } else if (lastUse >= abilityTicks){
+                onAbility = false
             }
         }
     }
     fun reset(){
         lastUse = 0
         onCooldown = false
+        onAbility = false
     }
 }
