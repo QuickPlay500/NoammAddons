@@ -14,7 +14,7 @@ import net.minecraft.network.chat.Component
 object CooldownTracker: Feature("M7 Arch/Bers Ability Cooldown Tracker") {
     private val m7only by ToggleSetting("only show in m7 drags",true)
 
-    val rag = ItemStats("RAGNAROCK_AXE",400,200)
+    val rag = ItemStats("RAGNAROCK_AXE",340,200)
     val tuba = ItemStats("WEIRDER_TUBA",400,600)
     val badHealth = ItemStats("SWORD_OF_BAD_HEALTH",100,100)
 
@@ -73,15 +73,11 @@ object CooldownTracker: Feature("M7 Arch/Bers Ability Cooldown Tracker") {
             val col2 = 120
             val rowHeight = mc.font.lineHeight + 2
 
-            // Header
-            ctx.drawString(mc.font, Component.literal("Buff"), col1, 0, 0xFFAAAAAA.toInt(), true)
-            ctx.drawString(mc.font, Component.literal("CD"),   col2, 0, 0xFFAAAAAA.toInt(), true)
-
             data class Row(val label: String, val buff: String, val cd: String)
 
             val rows = if (example) {
                 listOf(
-                    Row("Ragnarock",  "10.0s", "20.0s"),
+                    Row("Ragnarock",  "10.0s", "17.0s"),
                     Row("Tuba",       "30.0s", "20.0s"),
                     Row("Bad Health",  "5.0s",  "5.0s"),
                 )
@@ -93,6 +89,15 @@ object CooldownTracker: Feature("M7 Arch/Bers Ability Cooldown Tracker") {
                 }
             }
 
+
+            val width = col2 + 40f
+            val height = (rows.size + 1) * rowHeight.toFloat()
+            // Background
+            ctx.fill(0, 0, width.toInt(), height.toInt(), 0xAA4E4E4E.toInt())
+            // Header
+            ctx.drawString(mc.font, Component.literal("Buff"), col1, 0, 0xFF00F0FF.toInt(), true)
+            ctx.drawString(mc.font, Component.literal("CD"),   col2, 0, 0xFF00F0FF.toInt(), true)
+
             rows.forEachIndexed { i, row ->
                 val y = (i + 1) * rowHeight
                 ctx.drawString(mc.font, Component.literal(row.label), col0, y, 0xFFFFFFFF.toInt(), true)
@@ -100,8 +105,6 @@ object CooldownTracker: Feature("M7 Arch/Bers Ability Cooldown Tracker") {
                 ctx.drawString(mc.font, Component.literal(row.cd),    col2, y, 0xFFFFAA00.toInt(), true)
             }
 
-            val width = col2 + 40f
-            val height = (rows.size + 1) * rowHeight.toFloat()
             width to height
         }
     }
@@ -120,6 +123,7 @@ data class ItemStats(
     var lastUse: Int = 0
 ){
     fun trigger(){
+        if (onCooldown) return
         lastUse = 0
         onCooldown = true
         onAbility = true
