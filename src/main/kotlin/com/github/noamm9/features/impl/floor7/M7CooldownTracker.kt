@@ -27,7 +27,7 @@ object CooldownTracker: Feature("M7 Arch/Bers Ability Cooldown Tracker") {
         }
 
         register<MouseClickEvent>{
-            if (show()) return@register
+            if (!show()) return@register
 
             if (event.button != 1 || event.action != 1) return@register
             val item = mc.player?.mainHandItem ?: return@register
@@ -45,7 +45,7 @@ object CooldownTracker: Feature("M7 Arch/Bers Ability Cooldown Tracker") {
         }
 
         register<MainThreadPacketReceivedEvent.Pre>{
-            if (show()) return@register
+            if (!show()) return@register
 
             if (event.packet !is ClientboundSoundPacket) return@register
             if (event.packet.sound.value().location().path != "entity.wolf.death") return@register
@@ -57,7 +57,7 @@ object CooldownTracker: Feature("M7 Arch/Bers Ability Cooldown Tracker") {
         }
 
         register<TickEvent.Start> {
-            if (show()) return@register
+            if (!show()) return@register
 
             rag.countTicks()
             tuba.countTicks()
@@ -107,7 +107,7 @@ object CooldownTracker: Feature("M7 Arch/Bers Ability Cooldown Tracker") {
     }
 
     fun show(): Boolean{
-        return !((!m7only.value) || (LocationUtils.F7Phase == 5 && LocationUtils.inBoss && LocationUtils.dungeonFloorNumber == 7))
+        return ((!m7only.value) || (LocationUtils.F7Phase == 5 && LocationUtils.inBoss && LocationUtils.dungeonFloorNumber == 7))
     }
 }
 
