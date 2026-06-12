@@ -10,9 +10,8 @@ import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 
-object M7CooldownTracker: Feature("M7 Arch/Bers Ability Cooldown Tracker") {
+object CooldownTracker: Feature("M7 Arch/Bers Ability Cooldown Tracker") {
     private val m7only by ToggleSetting("only show in m7 drags",true)
-
 
     val rag = ItemStats("RAGNAROCK_AXE",400,200,false,400)
     val tuba = ItemStats("WEIRDER_TUBA",400,600,false,400)
@@ -21,9 +20,9 @@ object M7CooldownTracker: Feature("M7 Arch/Bers Ability Cooldown Tracker") {
     override fun init() {
 
         register<WorldChangeEvent> {
-            rag.onCooldown = false
-            tuba.onCooldown = false
-            badHealth.onCooldown = false
+            rag.reset()
+            tuba.reset()
+            badHealth.reset()
         }
 
         register<MouseClickEvent>{
@@ -33,12 +32,10 @@ object M7CooldownTracker: Feature("M7 Arch/Bers Ability Cooldown Tracker") {
             val item = mc.player?.mainHandItem ?: return@register
             when (item.skyblockId) {
                 tuba.skyblockId -> {
-                    tuba.lastUse = 0
-                    tuba.onCooldown = true
+                    tuba.trigger()
                 }
                 badHealth.skyblockId -> {
-                    badHealth.lastUse = 0
-                    badHealth.onCooldown = true
+                    badHealth.trigger()
                 }
                 else -> {
                     return@register
@@ -55,17 +52,15 @@ object M7CooldownTracker: Feature("M7 Arch/Bers Ability Cooldown Tracker") {
             val item = mc.player?.mainHandItem ?: return@register
             if (item.skyblockId != rag.skyblockId) return@register
 
-            rag.lastUse = 0
-            rag.onCooldown = true
-
+            rag.trigger()
         }
 
         register<TickEvent.Start> {
             if (show()) return@register
 
-            countAbilityTicks(rag)
-            countAbilityTicks(tuba)
-            countAbilityTicks(badHealth)
+            rag.countAbilityTicks()
+            tuba.countAbilityTicks()
+            badHealth.countAbilityTicks()
         }
 
         hudElement("Ability Cooldown", shouldDraw = { true }) { ctx, example ->
@@ -74,16 +69,8 @@ object M7CooldownTracker: Feature("M7 Arch/Bers Ability Cooldown Tracker") {
         }
     }
 
-    fun countAbilityTicks(item: ItemStats){
-        if (item.onCooldown){
-            item.lastUse++
-            if (item.lastUse >= item.cooldownTicks){
-                item.onCooldown = false
-            }
-        }
-    }
     fun show(): Boolean{
-        return ((!m7only.value) || (LocationUtils.F7Phase == 5 && LocationUtils.inBoss && LocationUtils.dungeonFloorNumber == 7))
+        return !((!m7only.value) || (LocationUtils.F7Phase == 5 && LocationUtils.inBoss && LocationUtils.dungeonFloorNumber == 7))
     }
 }
 
@@ -93,4 +80,21 @@ data class ItemStats(
     val abilityTicks: Int,
     var onCooldown: Boolean,
     var lastUse: Int
-)
+){
+    fun trigger(){
+        lastUse = 0
+        onCooldown = true
+    }
+    fun countAbilityTicks(){
+        if(onCooldown){
+            lastUse++
+            if (lastUse >= cooldownTicks){
+                reset()
+            }
+        }
+    }
+    fun reset(){
+        lastUse = 0
+        onCooldown = false
+    }
+}
