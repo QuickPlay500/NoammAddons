@@ -1,13 +1,16 @@
 package com.github.noamm9.features.impl.floor7.dragons
 
+import com.github.noamm9.NoammAddons.PREFIX
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.NumbersUtils.toFixed
+import com.github.noamm9.utils.dungeons.enums.Blessing
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render3D
@@ -41,11 +44,15 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
     val soloDebuff by DropdownSetting("Purple Solo Debuff", 0, listOf("Tank", "Healer")).showIf { dragonPriorityToggle.value }
     val soloDebuffOnAll by ToggleSetting("Solo Debuff on All Splits", true).showIf { dragonPriorityToggle.value }
 
+    val announceSplits by ToggleSetting("Announce Splits in Party Chat",false).showIf { dragonPriorityToggle.value }
+    var hasAnnouncedSplits = false
+
     var priorityDragon = WitherDragonEnum.None
 
     override fun init() {
         register<WorldChangeEvent> {
             priorityDragon = WitherDragonEnum.None
+            hasAnnouncedSplits = false
             WitherDragonEnum.reset()
         }
 
@@ -175,5 +182,35 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
             phase = false,
             lineWidth = 2.0
         )
+    }
+    fun announceDragons(dragons: MutableList<WitherDragonEnum>){
+        val totalPower = Blessing.POWER.current + (if (Blessing.TIME.current > 0) 2.5 else 0.0)
+        if (totalPower >= normalPower.value || (dragons.any { it == WitherDragonEnum.Purple } && totalPower >= easyPower.value)) {
+            dragons.sortBy {
+                listOf(
+                    WitherDragonEnum.Purple,
+                    WitherDragonEnum.Blue,
+                    WitherDragonEnum.Red,
+                    WitherDragonEnum.Green,
+                    WitherDragonEnum.Orange
+                ).indexOf(it)
+            }
+            val splitMsg = if(totalPower >= normalPower.value )"Split on all Drags!" else "Split on easy Drags!"
+            ChatUtils.sendPartyMessage("Power $totalPower | $splitMsg")
+            ChatUtils.sendPartyMessage("Arch Team: " + dragons[0].name) // $PREFIX
+            ChatUtils.sendPartyMessage("Bers Team: " + dragons[1].name)
+        }else {
+            dragons.sortBy {
+                listOf(
+                    WitherDragonEnum.Red,
+                    WitherDragonEnum.Orange,
+                    WitherDragonEnum.Blue,
+                    WitherDragonEnum.Purple,
+                    WitherDragonEnum.Green
+                ).indexOf(it)
+            }
+            ChatUtils.sendPartyMessage("Power $totalPower | No Split!")
+            ChatUtils.sendPartyMessage("Arch and Bers Team: "+dragons[0].name)
+        }
     }
 }
