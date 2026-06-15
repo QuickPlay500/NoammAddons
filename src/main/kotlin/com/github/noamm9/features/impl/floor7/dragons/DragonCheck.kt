@@ -42,7 +42,7 @@ object DragonCheck {
             WitherDragons.priorityDragon = DragonPriority.findPriority(dragons)
         }
 
-        if (!WitherDragons.announceSplits.value || !WitherDragons.hasAnnouncedSplits || dragons.size < 2) return
+        if (!WitherDragons.announceSplits.value || WitherDragons.hasAnnouncedSplits || dragons.size < 2) return
         WitherDragons.announceDragons(dragons)
         WitherDragons.hasAnnouncedSplits = true
     }
