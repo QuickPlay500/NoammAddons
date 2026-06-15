@@ -197,7 +197,7 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
         } else {
             dragons.sortBy { listOf(WitherDragonEnum.Red, WitherDragonEnum.Orange, WitherDragonEnum.Blue, WitherDragonEnum.Purple, WitherDragonEnum.Green).indexOf(it) }
             ChatUtils.sendPartyMessage("$PREFIX Power $totalPower | ${if (totalPower >= easyPower.value) "Split on easy Drags!" else "No Split!"}")
-            if (totalPower >= easyPower.value) ChatUtils.sendPartyMessage("No Purple Dragon")
+            if (totalPower >= easyPower.value) ChatUtils.sendPartyMessage("$PREFIX No Purple Dragon")
             ChatUtils.sendPartyMessage("$PREFIX Arch and Bers Team -> ${dragons[0].name}")
         }
     }
