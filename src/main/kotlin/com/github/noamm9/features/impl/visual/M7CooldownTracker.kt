@@ -1,18 +1,18 @@
-package com.github.noamm9.features.impl.floor7
+package com.github.noamm9.features.impl.visual
 
-import com.github.noamm9.features.Feature
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
-import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.network.chat.Component
+import net.minecraft.network.protocol.game.ClientboundSoundPacket
 
-object CooldownTracker: Feature("M7 Arch/Bers Ability Cooldown Tracker") {
-    private val m7only by ToggleSetting("only show in m7 drags",true)
+object M7CooldownTracker: Feature(name = "M7 Cooldown Hud",description = "M7 Arch/Bers Ability Cooldown Tracker") {
+    private val m7only by ToggleSetting("only show in m7 drags", true)
 
     val rag = ItemStats("RAGNAROCK_AXE",340,200)
     val tuba = ItemStats("WEIRDER_TUBA",400,600)
