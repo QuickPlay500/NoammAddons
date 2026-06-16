@@ -9,6 +9,7 @@ import com.github.noamm9.commands.CommandNodeBuilder
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.features.impl.dungeon.LeapMenu
+import com.github.noamm9.features.impl.misc.AutoSell
 import com.github.noamm9.ui.clickgui.ClickGuiScreen
 import com.github.noamm9.ui.hud.HudEditorScreen
 import com.github.noamm9.utils.*
@@ -182,6 +183,14 @@ object NaCommand: BaseCommand("na") {
                     val clazz = StringArgumentType.getString(ctx, "class")
                     val player = DungeonListener.dungeonTeammatesNoSelf.find { it.clazz.name == clazz } ?: return@runs ChatUtils.modMessage("leap target not found")
                     scope.launch { PlayerUtils.leapAction(player) }
+                }
+            }
+        }
+
+        literal("autodelete"){
+            runs {
+                scope.launch {
+                    AutoSell.startSelling()
                 }
             }
         }
