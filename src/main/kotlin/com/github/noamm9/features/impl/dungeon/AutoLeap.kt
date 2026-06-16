@@ -21,11 +21,6 @@ import kotlinx.coroutines.launch
 import net.minecraft.world.entity.decoration.ArmorStand
 import kotlin.time.Duration.Companion.milliseconds
 
-private var maxorDead = false
-private var goldorDead = false
-private var necronDead = false
-private var goldorStart = false
-private var necronStart = false
 
 object AutoLeap : Feature("Auto Leap") {
     private val leapTargets = listOf(
@@ -38,6 +33,11 @@ object AutoLeap : Feature("Auto Leap") {
     private var stormCrushed = false
     private var stormEnraged = false
     private var stormDead = false
+    private var maxorDead = false
+    private var goldorDead = false
+    private var necronDead = false
+    private var goldorStart = false
+    private var necronStart = false
 
     private val witherLeapSetting by ToggleSetting("Wither Key", false)
     private val targetWitherKeyLeap by DropdownSetting("Target", 3, leapTargets.map { it.name }).showIf { witherLeapSetting.value }
