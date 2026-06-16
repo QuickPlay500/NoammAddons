@@ -191,14 +191,10 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
 
         if (isNormalSplit || isEasySplit) {
             dragons.sortBy { listOf(WitherDragonEnum.Purple, WitherDragonEnum.Blue, WitherDragonEnum.Red, WitherDragonEnum.Green, WitherDragonEnum.Orange).indexOf(it) }
-            ChatUtils.sendPartyMessage("$PREFIX Power $totalPower | ${if (isNormalSplit) "Split on all Drags!" else "Split on easy Drags!"}")
-            ChatUtils.sendPartyMessage("$PREFIX Arch Team -> ${dragons[0].name}")
-            ChatUtils.sendPartyMessage("$PREFIX Bers Team -> ${dragons[1].name}")
+            ChatUtils.sendPartyMessage("$PREFIX Power $totalPower | ${if (isNormalSplit) "Split on all Drags!" else "Split on easy Drags!"} | Arch Team -> ${dragons[0].name} | Bers Team -> ${dragons[1].name}")
         } else {
             dragons.sortBy { listOf(WitherDragonEnum.Red, WitherDragonEnum.Orange, WitherDragonEnum.Blue, WitherDragonEnum.Purple, WitherDragonEnum.Green).indexOf(it) }
-            ChatUtils.sendPartyMessage("$PREFIX Power $totalPower | ${if (totalPower >= easyPower.value) "Split on easy Drags!" else "No Split!"}")
-            if (totalPower >= easyPower.value) ChatUtils.sendPartyMessage("$PREFIX No Purple Dragon")
-            ChatUtils.sendPartyMessage("$PREFIX Arch and Bers Team -> ${dragons[0].name}")
+            ChatUtils.sendPartyMessage("$PREFIX Power $totalPower | ${if (totalPower >= easyPower.value) "Split on easy Drags!" else "No Split!"} ${if(totalPower >= easyPower.value)" | No Purple Dragon" else ""} | Arch and Bers Team -> ${dragons[0].name}")
         }
     }
 }
