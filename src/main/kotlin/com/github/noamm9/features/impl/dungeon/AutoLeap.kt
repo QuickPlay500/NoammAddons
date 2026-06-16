@@ -21,6 +21,12 @@ import kotlinx.coroutines.launch
 import net.minecraft.world.entity.decoration.ArmorStand
 import kotlin.time.Duration.Companion.milliseconds
 
+private var maxorDead = false
+private var goldorDead = false
+private var necronDead = false
+private var goldorStart = false
+private var necronStart = false
+
 object AutoLeap : Feature("Auto Leap") {
     private val leapTargets = listOf(
         DungeonClass.Archer,
@@ -29,12 +35,9 @@ object AutoLeap : Feature("Auto Leap") {
         DungeonClass.Healer,
         DungeonClass.Tank
     )
-    private var maxorDead = false
     private var stormCrushed = false
     private var stormEnraged = false
     private var stormDead = false
-    private var goldorDead = false
-    private var necronDead = false
 
     private val witherLeapSetting by ToggleSetting("Wither Key", false)
     private val targetWitherKeyLeap by DropdownSetting("Target", 3, leapTargets.map { it.name }).showIf { witherLeapSetting.value }
@@ -60,15 +63,16 @@ object AutoLeap : Feature("Auto Leap") {
     override fun init() {
 
         register<WorldChangeEvent> {
-            maxorDead = false
             stormCrushed = false
             stormEnraged = false
             stormDead = false
+            maxorDead = false
+            goldorStart = false
             goldorDead = false
-            necronDead = false
+            necronStart = false
+            necronStart = false
         }
 
-        // Wither Key
         register<EntityUnloadEvent> {
             if (!witherLeapSetting.value) return@register
             if (!LocationUtils.inDungeon || inBoss) return@register
@@ -79,7 +83,6 @@ object AutoLeap : Feature("Auto Leap") {
             }
         }
 
-        // Maxor, Goldor, Necron
         register<BossBarUpdateEvent> {
             if (!maxorDeadLeapSetting.value && !goldorDeadLeapSetting.value && !necronDeadLeapSetting.value) return@register
             if (dungeonFloorNumber != 7 || !inBoss) return@register
@@ -91,19 +94,18 @@ object AutoLeap : Feature("Auto Leap") {
                 maxorDead = true
                 scope.launch { performLeap(targetMaxorDeadLeap.value) }
             }
-            else if (name.contains("Goldor") && !goldorDead) {
+            else if (name.contains("Goldor") && !goldorDead && goldorStart) {
                 goldorDead = true
                 scope.launch { performLeap(targetGoldorDeadLeap.value) }
             }
-            else if (name.contains("Necron") && !necronDead) {
+            else if (name.contains("Necron") && !necronDead && necronStart) {
                 necronDead = true
                 scope.launch { performLeap(targetNecronDeadLeap.value) }
             }
         }
 
-        // Storm
         register<ChatMessageEvent> {
-            if ((!stormDeadLeapSetting.value && !stormEnragedLeapSetting.value && !stormCrushLeapSetting.value) || !inBoss || dungeonFloorNumber != 7) return@register
+            if ((!stormDeadLeapSetting.value && !stormEnragedLeapSetting.value && !stormCrushLeapSetting.value && !goldorDeadLeapSetting.value && !necronDeadLeapSetting.value) || !inBoss || dungeonFloorNumber != 7) return@register
             when (event.unformattedText) {
                 "[BOSS] Storm: Oof", "[BOSS] Storm: Ouch, that hurt!" -> if (stormCrushLeapSetting.value && !stormCrushed) {
                     stormCrushed = true; scope.launch { performLeap(targetStormCrushLeap.value) }
@@ -116,9 +118,10 @@ object AutoLeap : Feature("Auto Leap") {
                 "[BOSS] Storm: BEGONE PILLAR!", "[BOSS] Storm: This factory is too small for me!", "[BOSS] Storm: Slowing me down will be your greatest accomplishment!", "[BOSS] Storm: THAT WAS ONLY IN MY WAY!" -> if (stormEnragedLeapSetting.value && !stormEnraged) {
                     stormEnraged = true; scope.launch { performLeap(targetStormEnragedLeap.value) }
                 }
+                "The Core entrance is opening!" -> goldorStart = true
+                "[BOSS] Necron: ARGH!" -> necronStart = true
             }
         }
-
     }
 
     private suspend fun performLeap(value: Int) {
@@ -130,7 +133,6 @@ object AutoLeap : Feature("Auto Leap") {
         delay(50.milliseconds)
         PlayerUtils.swapToSlot(prevSlot)
     }
-
 }
 
 //#endif
