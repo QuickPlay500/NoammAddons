@@ -44,7 +44,7 @@ object BlessingDisplay: Feature("Displays the current active blessings in the du
 
                 val rawValue = if (example) 5 else blessing.current
 
-                // Add time blessings as 0.5 power each
+                // Add time blessings to power blessings
                 val value: Float = if (blessing == Blessing.POWER && timeToPower.value) {
                     val timeValue = if (example) 5 else Blessing.TIME.current
                     rawValue + timeValue * 0.5f
@@ -54,9 +54,7 @@ object BlessingDisplay: Feature("Displays the current active blessings in the du
 
                 if (!enabled || value <= 0f) return@forEach
 
-                // Show as integer if whole number, otherwise show decimal
-                val valueString = if (value % 1 == 0f) value.toInt().toString() else value.toString()
-                val text = "${blessing.displayString} §f$valueString"
+                val text = "${blessing.displayString} §f$value"
 
                 Render2D.drawString(context, text, 0, currentY.toInt(), color)
 
