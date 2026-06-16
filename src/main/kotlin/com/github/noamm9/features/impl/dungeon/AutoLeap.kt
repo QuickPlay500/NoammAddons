@@ -19,6 +19,7 @@ import com.github.noamm9.utils.location.LocationUtils.inBoss
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.minecraft.world.entity.decoration.ArmorStand
+import kotlin.time.Duration.Companion.milliseconds
 
 object AutoLeap : Feature("Auto Leap") {
     private val leapTargets = listOf(
@@ -32,22 +33,29 @@ object AutoLeap : Feature("Auto Leap") {
     private var stormCrushed = false
     private var stormEnraged = false
     private var stormDead = false
+    private var goldorDead = false
+    private var necronDead = false
 
     private val witherLeapSetting by ToggleSetting("Wither Key", false)
-    private val targetWitherKeyLeap by DropdownSetting("Target", 3, leapTargets.map { it.name })
+    private val targetWitherKeyLeap by DropdownSetting("Target", 3, leapTargets.map { it.name }).showIf { witherLeapSetting.value }
 
     private val maxorDeadLeapSetting by ToggleSetting("Maxor dead", false)
-    private val targetMaxorDeadLeap by DropdownSetting("Target", 2, leapTargets.map { it.name })
+    private val targetMaxorDeadLeap by DropdownSetting("Target", 2, leapTargets.map { it.name }).showIf { maxorDeadLeapSetting.value }
 
     private val stormCrushLeapSetting by ToggleSetting("Storm Crushed", false)
-    private val targetStormCrushLeap by DropdownSetting("Target", 3, leapTargets.map { it.name })
+    private val targetStormCrushLeap by DropdownSetting("Target", 3, leapTargets.map { it.name }).showIf { stormCrushLeapSetting.value }
 
     private val stormEnragedLeapSetting by ToggleSetting("Storm Enraged", false)
-    private val targetStormEnragedLeap by DropdownSetting("Target", 1, leapTargets.map { it.name })
+    private val targetStormEnragedLeap by DropdownSetting("Target", 1, leapTargets.map { it.name }).showIf { stormEnragedLeapSetting.value }
 
     private val stormDeadLeapSetting by ToggleSetting("Storm dead", false)
-    private val targetStormDeadLeap by DropdownSetting("Target", 3, leapTargets.map { it.name })
+    private val targetStormDeadLeap by DropdownSetting("Target", 3, leapTargets.map { it.name }).showIf { stormDeadLeapSetting.value }
 
+    private val goldorDeadLeapSetting by ToggleSetting("Goldor dead",false)
+    private val targetGoldorDeadLeap by DropdownSetting("Target",3,leapTargets.map { it.name }).showIf { goldorDeadLeapSetting.value }
+
+    private val necronDeadLeapSetting by ToggleSetting("Necron dead",false)
+    private val targetNecronDeadLeap by DropdownSetting("Target",3,leapTargets.map { it.name }).showIf { necronDeadLeapSetting.value }
 
     override fun init() {
 
@@ -56,6 +64,8 @@ object AutoLeap : Feature("Auto Leap") {
             stormCrushed = false
             stormEnraged = false
             stormDead = false
+            goldorDead = false
+            necronDead = false
         }
 
         // Wither Key
@@ -69,9 +79,9 @@ object AutoLeap : Feature("Auto Leap") {
             }
         }
 
-        // Maxor
+        // Maxor, Goldor, Necron
         register<BossBarUpdateEvent> {
-            if (!maxorDeadLeapSetting.value) return@register
+            if (!maxorDeadLeapSetting.value && !goldorDeadLeapSetting.value && !necronDeadLeapSetting.value) return@register
             if (dungeonFloorNumber != 7 || !inBoss) return@register
             if (event.progress > 0f) return@register
             val name = event.name.unformattedText
@@ -80,6 +90,14 @@ object AutoLeap : Feature("Auto Leap") {
             if (name.contains("Maxor") && !maxorDead && DungeonListener.currentTime - entry > 120) {
                 maxorDead = true
                 scope.launch { performLeap(targetMaxorDeadLeap.value) }
+            }
+            else if (name.contains("Goldor") && !goldorDead) {
+                goldorDead = true
+                scope.launch { performLeap(targetGoldorDeadLeap.value) }
+            }
+            else if (name.contains("Necron") && !necronDead) {
+                necronDead = true
+                scope.launch { performLeap(targetNecronDeadLeap.value) }
             }
         }
 
@@ -109,7 +127,7 @@ object AutoLeap : Feature("Auto Leap") {
         val preferredClass = leapTargets[value]
         val target = aliveTeammates.find { it.clazz == preferredClass } ?: return
         PlayerUtils.leapAction(target)
-        delay(50)
+        delay(50.milliseconds)
         PlayerUtils.swapToSlot(prevSlot)
     }
 
