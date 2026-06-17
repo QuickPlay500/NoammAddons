@@ -93,9 +93,12 @@ object AutoSell : Feature("Automatic Item Sell to Trades Menu") {
     }
 
     fun startSelling() {
+        if(!enabled) return ChatUtils.modMessage("AutoSell not enabled")
+        
         configureSellList()
 
         if (sellList.isEmpty()) return ChatUtils.modMessage("&cSell list is empty!")
+
         awaitingTrades = true
         ChatUtils.sendCommand("trades")
 
