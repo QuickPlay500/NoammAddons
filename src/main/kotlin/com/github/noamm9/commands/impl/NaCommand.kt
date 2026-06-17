@@ -187,7 +187,7 @@ object NaCommand: BaseCommand("na") {
             }
         }
 
-        literal("autodelete"){
+        literal("autosell"){
             runs {
                 scope.launch {
                     AutoSell.startSelling()

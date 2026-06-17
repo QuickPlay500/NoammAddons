@@ -114,7 +114,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
         }
     }
 
-    private fun getProtectType(stack: ItemStack): ProtectType {
+    fun getProtectType(stack: ItemStack): ProtectType {
         if (stack.isEmpty) return ProtectType.None
 
         if (protectUUID.value) {
@@ -135,7 +135,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
         return ProtectType.None
     }
 
-    private fun isSellMenu(): Boolean {
+    fun isSellMenu(): Boolean {
         val menu = mc.player?.containerMenu ?: return false
         return menu.slots.take(54).any { slot ->
             if (slot.item.isEmpty) return@any false
@@ -163,5 +163,5 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
         }
     }
 
-    private enum class ProtectType { UUID, SkyblockID, Starred, RarityUpgraded, None }
+    enum class ProtectType { UUID, SkyblockID, Starred, RarityUpgraded, None }
 }
