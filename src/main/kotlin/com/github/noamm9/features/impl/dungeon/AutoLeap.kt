@@ -54,6 +54,9 @@ object AutoLeap : Feature("Auto Leap") {
     private val stormDeadLeapSetting by ToggleSetting("Storm dead", false)
     private val targetStormDeadLeap by DropdownSetting("Target", 3, leapTargets.map { it.name }).showIf { stormDeadLeapSetting.value }
 
+    private val goldorStartLeapSetting by ToggleSetting("Goldor Start" ,false).withDescription("Leap if you are in S4 and Core Entrance is opening (Not Leaping if you are already in Core)")
+    private val targetGoldorStartLeap by DropdownSetting("Target",1, leapTargets.map { it.name }).showIf { goldorStartLeapSetting.value }
+
     private val goldorDeadLeapSetting by ToggleSetting("Goldor dead",false)
     private val targetGoldorDeadLeap by DropdownSetting("Target",3,leapTargets.map { it.name }).showIf { goldorDeadLeapSetting.value }
 
@@ -105,7 +108,7 @@ object AutoLeap : Feature("Auto Leap") {
         }
 
         register<ChatMessageEvent> {
-            if ((!stormDeadLeapSetting.value && !stormEnragedLeapSetting.value && !stormCrushLeapSetting.value && !goldorDeadLeapSetting.value && !necronDeadLeapSetting.value) || !inBoss || dungeonFloorNumber != 7) return@register
+            if ((!stormDeadLeapSetting.value && !stormEnragedLeapSetting.value && !stormCrushLeapSetting.value && !goldorStartLeapSetting.value &&!goldorDeadLeapSetting.value && !necronDeadLeapSetting.value) || !inBoss || dungeonFloorNumber != 7) return@register
             when (event.unformattedText) {
                 "[BOSS] Storm: Oof", "[BOSS] Storm: Ouch, that hurt!" -> if (stormCrushLeapSetting.value && !stormCrushed) {
                     stormCrushed = true; scope.launch { performLeap(targetStormCrushLeap.value) }
@@ -118,7 +121,12 @@ object AutoLeap : Feature("Auto Leap") {
                 "[BOSS] Storm: BEGONE PILLAR!", "[BOSS] Storm: This factory is too small for me!", "[BOSS] Storm: Slowing me down will be your greatest accomplishment!", "[BOSS] Storm: THAT WAS ONLY IN MY WAY!" -> if (stormEnragedLeapSetting.value && !stormEnraged) {
                     stormEnraged = true; scope.launch { performLeap(targetStormEnragedLeap.value) }
                 }
-                "The Core entrance is opening!" -> goldorStart = true
+                "The Core entrance is opening!" -> {
+                    if (goldorStartLeapSetting.value && !goldorDead && LocationUtils.P3Section == 4) {
+                        scope.launch {performLeap(targetGoldorStartLeap.value) }
+                    }
+                    goldorStart = true
+                }
                 "[BOSS] Necron: ARGH!" -> necronStart = true
             }
         }
