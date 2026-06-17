@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.misc
 
+//#if CHEAT
 
 import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
 import com.github.noamm9.features.Feature
@@ -34,15 +35,7 @@ object AutoSell : Feature("Automatic Item Sell to Trades Menu") {
     private val sellUselessOtherStuff by ToggleSetting("Useless Other Stuff").withDescription("Buttons, Levers, Defuse Kits, Signs, etc.")
     private val sellOtherSackItems by ToggleSetting("Other Sack Items", false)
 
-    private val defaultItems = setOf(
-        "enchanted ice", "rotten", "skeleton master", "skeleton grunt", "cutlass",
-        "skeleton lord", "skeleton soldier", "zombie soldier", "zombie knight", "zombie commander", "zombie lord",
-        "skeletor", "super heavy", "heavy", "sniper helmet", "dreadlord", "earth shard", "zombie commander whip",
-        "machine gun", "sniper bow", "soulstealer bow", "silent death", "training weight",
-        "beating heart", "premium flesh", "mimic fragment", "enchanted rotten flesh", "sign",
-        "enchanted bone", "defuse kit", "optical lens", "tripwire hook", "button", "carpet", "lever", "diamond atom",
-        "healing viii splash potion", "healing 8 splash potion", "candycomb"
-    )
+
     private val setSkeletonMasterChestplate = setOf("skeleton master chestplate")
     private val setReviveStones = setOf("Revive Stone")
     private val setRunes = setOf("Rune")
@@ -132,3 +125,4 @@ object AutoSell : Feature("Automatic Item Sell to Trades Menu") {
         }
     }
 }
+//#endif
