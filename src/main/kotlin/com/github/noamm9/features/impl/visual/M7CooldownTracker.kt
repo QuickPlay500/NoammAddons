@@ -6,6 +6,9 @@ import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.dungeons.enums.DungeonClass
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.network.chat.Component
@@ -13,7 +16,7 @@ import net.minecraft.network.protocol.game.ClientboundSoundPacket
 
 object M7CooldownTracker: Feature(name = "M7 Cooldown Hud",description = "M7 Arch/Bers Ability Cooldown Tracker") {
     private val m7only by ToggleSetting("only show in m7 drags", true)
-
+    private val archBersOnly by ToggleSetting("only show on Arch/Bers",true).showIf { m7only.value }
     val rag = ItemStats("RAGNAROCK_AXE",340,200)
     val tuba = ItemStats("WEIRDER_TUBA",400,600)
     val badHealth = ItemStats("SWORD_OF_BAD_HEALTH",100,100)
@@ -110,7 +113,7 @@ object M7CooldownTracker: Feature(name = "M7 Cooldown Hud",description = "M7 Arc
     }
 
     fun show(): Boolean{
-        return ((!m7only.value) || (LocationUtils.F7Phase == 5 && LocationUtils.inBoss && LocationUtils.dungeonFloorNumber == 7))
+        return ((!m7only.value) || ((LocationUtils.F7Phase == 5 && LocationUtils.inBoss && LocationUtils.dungeonFloorNumber == 7) && (!archBersOnly.value || (DungeonListener.thePlayer?.clazz?.equalsOneOf(DungeonClass.Archer, DungeonClass.Berserk)?: false))))
     }
 }
 
