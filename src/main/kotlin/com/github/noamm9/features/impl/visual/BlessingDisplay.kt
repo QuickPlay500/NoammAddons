@@ -53,8 +53,8 @@ object BlessingDisplay: Feature("Displays the current active blessings in the du
                 }
 
                 if (!enabled || value <= 0f) return@forEach
-
-                val text = "${blessing.displayString} §f$value"
+                val valueString = if (value % 1 == 0f) value.toInt().toString() else value.toString()
+                val text = "${blessing.displayString} §f$valueString"
 
                 Render2D.drawString(context, text, 0, currentY.toInt(), color)
 
