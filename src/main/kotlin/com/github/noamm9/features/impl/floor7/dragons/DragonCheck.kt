@@ -41,6 +41,8 @@ object DragonCheck {
         if (dragons.isNotEmpty()) {
             WitherDragons.priorityDragon = DragonPriority.findPriority(dragons)
         }
+        if (!WitherDragons.announceSplits.value || dragons.size < 2) return
+        WitherDragons.announceDragons(dragons)
     }
 
     fun dragonUpdate(packet: ClientboundSetEntityDataPacket) {
