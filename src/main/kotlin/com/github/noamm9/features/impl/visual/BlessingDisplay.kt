@@ -16,11 +16,14 @@ object BlessingDisplay: Feature("Displays the current active blessings in the du
     private val life by ToggleSetting("Life Blessing", false)
     private val stone by ToggleSetting("Stone Blessing", false)
 
+    private val timeToPower by ToggleSetting("Time to Power", false)
+
     private val powerColor by ColorSetting("Power Color", Color(ChatFormatting.DARK_RED.color !!)).showIf { power.value }.section("Colors")
     private val timeColor by ColorSetting("Time Color", Color(ChatFormatting.DARK_PURPLE.color !!)).showIf { time.value }
     private val wisdomColor by ColorSetting("Wisdom Color", Color(ChatFormatting.AQUA.color !!)).showIf { wisdom.value }
     private val lifeColor by ColorSetting("Red Color", Color(ChatFormatting.RED.color !!)).showIf { life.value }
     private val stoneColor by ColorSetting("Stone Color", Color(ChatFormatting.GRAY.color !!)).showIf { stone.value }
+
 
     private fun getBlessingConfig(type: Blessing) = when (type) {
         Blessing.POWER -> power.value to powerColor.value
@@ -38,10 +41,22 @@ object BlessingDisplay: Feature("Displays the current active blessings in the du
             Blessing.entries.forEach { blessing ->
                 val (enabled, color) = getBlessingConfig(blessing)
 
-                val value = if (example) 5 else blessing.current
-                if (! enabled || value <= 0) return@forEach
+                if (blessing == Blessing.TIME && timeToPower.value) return@forEach
 
-                val text = "${blessing.displayString} §f$value"
+                val rawValue = if (example) 5 else blessing.current
+
+                // Add time blessings to power blessings
+                val value: Float = if (blessing == Blessing.POWER && timeToPower.value) {
+                    val timeValue = if (example) 5 else Blessing.TIME.current
+                    rawValue + timeValue * 0.5f
+                } else {
+                    rawValue.toFloat()
+                }
+
+                if (!enabled || value <= 0f) return@forEach
+                val valueString = if (value % 1 == 0f) value.toInt().toString() else value.toString()
+                val text = "${blessing.displayString} §f$valueString"
+
 
                 Render2D.drawString(context, text, 0, currentY.toInt(), color)
 
