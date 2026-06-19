@@ -40,7 +40,7 @@ object AutoI4: Feature("Fully Automated I4") {
     private val rodSetting by ToggleSetting("Auto Rod", true)
     private val maskSetting by ToggleSetting("Auto Mask", true)
     private val leapSetting by ToggleSetting("Auto Leap", true)
-    private val leapPriorities = listOf(DungeonClass.Tank, DungeonClass.Mage, DungeonClass.Healer, DungeonClass.Archer)
+    private val leapPriorities = listOf(DungeonClass.Tank, DungeonClass.Archer, DungeonClass.Healer, DungeonClass.Mage, DungeonClass.Berserk)
     private val preferredLeapClass by DropdownSetting("Leap Priority", 0, leapPriorities.map { it.name })
 
     private const val STORM_DEATH_MESSAGE = "[BOSS] Storm: I should have known that I stood no chance."
