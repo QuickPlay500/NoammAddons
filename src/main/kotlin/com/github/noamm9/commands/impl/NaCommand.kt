@@ -193,6 +193,14 @@ object NaCommand: BaseCommand("na") {
                 }
             }
         }
+
+        literal("autosell"){
+            runs {
+                scope.launch {
+                    com.github.noamm9.features.impl.general.AutoSell.startSelling()
+                }
+            }
+        }
         //#endif
     }
 
