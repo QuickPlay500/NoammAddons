@@ -156,16 +156,16 @@ object LeapCounter: Feature(description = "Displays a counter for how many playe
                 val count = "0"
                 val total = "/4"
                 Render2D.drawString(ctx, count, 0, 0, Color(0x55FF55))
-                Render2D.drawString(ctx, total, count.width(), 0, Color.WHITE)
+                Render2D.drawString(ctx, total, count.width(), 0, Color(0xFF0000))
                 return@hudElement (count.width() + total.width()).toFloat() to 9f
             }
             val match = cachedEarlyEnter ?: return@hudElement 0f to 0f
             val count = "${match.count}"
             val total = "/${match.playerCount.value}"
             val countColor = if((match.playerCount.value-match.count)>=2) {
-                Color(0xFFD600)
+                Color(0xFF4848)
             }else{
-                Color(0xFF0000)
+                Color(0xFFD600)
             }
             Render2D.drawString(ctx, count, 0, 0, countColor)
             Render2D.drawString(ctx, total, count.width(), 0, Color(0xFF0000))
