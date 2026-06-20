@@ -1,6 +1,7 @@
 package com.github.noamm9.features.impl.floor7
 
 import com.github.noamm9.event.impl.ChatMessageEvent
+import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.ButtonSetting
@@ -17,10 +18,14 @@ import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.sounds.SoundEvents
+import java.awt.Color
 import kotlin.math.sqrt
 
 object LeapCounter: Feature(description = "Displays a counter for how many players have leaped to you. (Requires Leap Messages)") {
-
+    private var cachedEarlyEnter: EarlyEnter? = null
+    private val sentByMeRegex by lazy{
+        Regex("""^Party > (\[.*?] )?${Regex.escape(mc.user.name)}:""")
+    }
     private val earlyEnterClasses = listOf(
         DungeonClass.Archer,
         DungeonClass.Mage,
@@ -42,7 +47,8 @@ object LeapCounter: Feature(description = "Displays a counter for how many playe
         val playerClass: DropdownSetting,
         val playerCount: SliderSetting<Int>,
         var count: Int = 0,
-        val position: EarlyEnterPosition
+        val position: EarlyEnterPosition,
+        var done: Boolean = false
     )
 
     private fun newEarlyEnter(
@@ -79,7 +85,8 @@ object LeapCounter: Feature(description = "Displays a counter for how many playe
     private fun currentEarlyEnter(): EarlyEnter? {
         val pos = mc.player?.position() ?: return null
         return earlyEnters.filter { it.enabled.value }.firstOrNull { earlyEnter ->
-            if (earlyEnter.onlyOneClass.value && DungeonListener.thePlayer?.clazz != earlyEnterClasses[earlyEnter.playerClass.value]) return null
+            if(earlyEnter.done) return@firstOrNull false
+            if (earlyEnter.onlyOneClass.value && DungeonListener.thePlayer?.clazz != earlyEnterClasses[earlyEnter.playerClass.value]) return@firstOrNull false
             val p = earlyEnter.position
             val dist = sqrt(
                 (pos.x - p.x) * (pos.x - p.x) +
@@ -119,30 +126,50 @@ object LeapCounter: Feature(description = "Displays a counter for how many playe
 
     override fun init() {
         register<WorldChangeEvent> {
-            earlyEnters.forEach { it.count = 0 }
+            earlyEnters.forEach {
+                it.count = 0
+                it.done = false
+            }
+        }
+        register<TickEvent.Start>{
+            cachedEarlyEnter = currentEarlyEnter()
         }
         register<ChatMessageEvent> {
             if (!LocationUtils.inDungeon || LocationUtils.dungeonFloorNumber != 7) return@register
-            // still need to filter out own player messages
             if (!event.unformattedText.contains(mc.user.name)) return@register
-            val match = currentEarlyEnter() ?: return@register
+            if (sentByMeRegex.containsMatchIn(event.unformattedText)) return@register
+
+            val match = cachedEarlyEnter ?: return@register
             match.count++
-            if (playSound.value && match.count >= match.playerCount.value) {
-                mc.soundManager.play(SimpleSoundInstance.forUI(sound.value, pitch.value, volume.value))
+            if (match.count >= match.playerCount.value) {
+                match.done = true
+                if(playSound.value) {
+                    mc.soundManager.play(SimpleSoundInstance.forUI(sound.value, pitch.value, volume.value))
+                }
             }
         }
         hudElement(
             name = "Leap Counter",
-            shouldDraw = { LocationUtils.inDungeon && LocationUtils.dungeonFloorNumber == 7 && currentEarlyEnter() != null },
+            shouldDraw = { LocationUtils.inDungeon && LocationUtils.dungeonFloorNumber == 7 && cachedEarlyEnter != null },
         ) { ctx, example ->
             if (example) {
-                Render2D.drawString(ctx, "0/4", 0, 0)
-                return@hudElement "0/4".width().toFloat() to 9f
+                val count = "0"
+                val total = "/4"
+                Render2D.drawString(ctx, count, 0, 0, Color(0x55FF55))
+                Render2D.drawString(ctx, total, count.width(), 0, Color.WHITE)
+                return@hudElement (count.width() + total.width()).toFloat() to 9f
             }
-            val match = currentEarlyEnter() ?: return@hudElement 0f to 0f
-            val text = "${match.count}/${match.playerCount.value}"
-            Render2D.drawString(ctx, text, 0, 0)
-            text.width().toFloat() to 9f
+            val match = cachedEarlyEnter ?: return@hudElement 0f to 0f
+            val count = "${match.count}"
+            val total = "/${match.playerCount.value}"
+            val countColor = if((match.playerCount.value-match.count)>=2) {
+                Color(0xFFD600)
+            }else{
+                Color(0xFF0000)
+            }
+            Render2D.drawString(ctx, count, 0, 0, countColor)
+            Render2D.drawString(ctx, total, count.width(), 0, Color(0xFF0000))
+            (count.width() + total.width()).toFloat() to 9f
         }
     }
 }
