@@ -108,7 +108,7 @@ object LeapCounter: Feature(description = "Displays a counter for how many playe
     }.showIf { playSound.value }
 
     private val ss = newEarlyEnter("ss", false, 3, 3, EarlyEnterPosition(108.0, 120.0, 94.0, 2.0))
-    private val hee2 = newEarlyEnter("hee2", true, 1, 4, EarlyEnterPosition(60.5, 132.0, 129.5, 3))
+    private val hee2 = newEarlyEnter("hee2", true, 1, 4, EarlyEnterPosition(60.5, 132.0, 139.5, 3.0))
     private val lee2 = newEarlyEnter("lee2", false, 0, 4, EarlyEnterPosition(58.0, 109.0, 131.0, 1.5))
     private val ee3 = newEarlyEnter("ee3", true, 3, 3, EarlyEnterPosition(2.0, 109.0, 102.0, 4.0))
     private val hee3 = newEarlyEnter("hee3", false, 3, 3, EarlyEnterPosition(18.5, 121.5, 91.5, 1.5))
@@ -122,7 +122,7 @@ object LeapCounter: Feature(description = "Displays a counter for how many playe
             earlyEnters.forEach { it.count = 0 }
         }
         register<ChatMessageEvent> {
-            if (!LocationUtils.inDungeon || !LocationUtils.inBoss || LocationUtils.dungeonFloorNumber != 7) return@register
+            if (!LocationUtils.inDungeon || LocationUtils.dungeonFloorNumber != 7) return@register
             // still need to filter out own player messages
             if (!event.unformattedText.contains(mc.user.name)) return@register
             val match = currentEarlyEnter() ?: return@register
@@ -133,7 +133,7 @@ object LeapCounter: Feature(description = "Displays a counter for how many playe
         }
         hudElement(
             name = "Leap Counter",
-            shouldDraw = { LocationUtils.inDungeon && LocationUtils.inBoss && LocationUtils.dungeonFloorNumber == 7 && currentEarlyEnter() != null },
+            shouldDraw = { LocationUtils.inDungeon && LocationUtils.dungeonFloorNumber == 7 && currentEarlyEnter() != null },
         ) { ctx, example ->
             if (example) {
                 Render2D.drawString(ctx, "0/4", 0, 0)
