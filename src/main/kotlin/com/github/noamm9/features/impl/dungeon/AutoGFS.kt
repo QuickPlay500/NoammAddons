@@ -25,10 +25,8 @@ object AutoGFS: Feature("Automatically refills dungeon items from your sacks usi
     private val refillTwilight by ToggleSetting("Refill Twilight")
 
     private val pyTwilight by ToggleSetting("Refill after lightning", true).section("Twilight").showIf { refillTwilight.value }
-    private val pyTwilightOnlyArch by ToggleSetting("Arch only",true).showIf { refillTwilight.value && pyTwilight.value }
-    private val p5Twilight by ToggleSetting("Refill after m7 relics", true).showIf { refillTwilight.value }
-    private val p5TwilightNoArchBers by ToggleSetting("Dont refill on Arch/Bers",true).showIf { refillTwilight.value && p5Twilight.value }
-    private val twilightAmount by SliderSetting("Twilight Amount", 8, 4, 8, 1).withDescription("The amount of Twilight you want the auto to pull out of sax").showIf { (p5Twilight.value || pyTwilight.value) && refillTwilight.value }
+    private val p5Twilight by ToggleSetting("Refill after M7 relics", true).showIf { refillTwilight.value }
+    private val twilightAmount by SliderSetting("Twilight Amount", 8, 4, 8, 1).withDescription("The amount of Twilight you want the auto to pull out of sacks").showIf { (p5Twilight.value || pyTwilight.value) && refillTwilight.value }
 
     private val p5Message = Regex("^\\[BOSS] Wither King: I no longer wish to fight, but I know that will not stop you\\.$")
     private val pyMessage1 = Regex("^\\[BOSS] Storm: (ENERGY HEED MY CALL|THUNDER LET ME BE YOUR CATALYST)!$")
@@ -47,13 +45,11 @@ object AutoGFS: Feature("Automatically refills dungeon items from your sacks usi
             val msg = event.unformattedText
 
             when {
-                p5Twilight.value && p5Message.matches(msg) -> {
-                    if (clazz.equalsOneOf(DungeonClass.Archer, DungeonClass.Berserk) && p5TwilightNoArchBers.value) return@register
+                p5Twilight.value && ! clazz.equalsOneOf(DungeonClass.Archer, DungeonClass.Berserk) && p5Message.matches(msg) -> {
                     ChatUtils.sendCommand("gfs twilight_arrow_poison ${twilightAmount.value}")
                 }
 
-                pyTwilight.value && ! pyHappened && pyMessage1.matches(msg) -> {
-                    if (clazz != DungeonClass.Archer && pyTwilightOnlyArch.value) return@register
+                pyTwilight.value && ! pyHappened && clazz == DungeonClass.Archer && pyMessage1.matches(msg) -> {
                     ChatUtils.sendCommand("gfs twilight_arrow_poison ${twilightAmount.value}")
                     pyHappened = true
                 }
