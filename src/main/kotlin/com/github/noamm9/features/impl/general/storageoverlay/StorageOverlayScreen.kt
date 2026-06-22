@@ -49,7 +49,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     private val slotBgColor = Color(50, 50, 55, 200)
     private val slotCellBg = Color(30, 30, 34).rgb
     private val slotCellBorder = Color(55, 55, 60).rgb
-    private val activePageBorder get() = ClickGui.accsentColor.value
+    private val activePageBorder get() = ClickGui.accentColor.value
     private val scrollBgColor = Color(30, 30, 35, 180)
     private val scrollKnobColor = Color(120, 120, 130)
 
@@ -208,7 +208,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         for (i in 0 until 36) {
             val item = items[i]
             val (sx, sy) = getPlayerInvSlotPos(i)
-            val isSlotHovered = inRect(mouseX, mouseY, sx, sy, 16, 16)
+            val isSlotHovered = inRect(mouseX, mouseY, sx - 1, sy - 1, 16 + 2, 16 + 2)
 
             if (! item.isEmpty) {
                 if (FEAT_ItemRarity.enabled) FEAT_ItemRarity.onSlotDraw(this, item, sx, sy)
@@ -278,7 +278,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
             if (slotY + 16 < panelY || slotY > panelY + panelH) continue
             val displayStack = if (slots != null && index < slots.size) slots[index].item else invStacks?.get(index) ?: continue
-            val isSlotHovered = inRect(mouseX, mouseY, slotX, slotY, 16, 16) && inRect(mouseX, mouseY, panelX, panelY, panelW, panelH)
+            val isSlotHovered = inRect(mouseX, mouseY, slotX - 1, slotY - 1, 16 + 2, 16 + 2) && inRect(mouseX, mouseY, panelX, panelY, panelW, panelH)
 
             if (! displayStack.isEmpty) {
                 if (FEAT_ItemRarity.enabled) FEAT_ItemRarity.onSlotDraw(this, displayStack, slotX, slotY)
@@ -373,7 +373,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             val holdingCtrl = GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS
             when {
                 holdingShift && ! holdingCtrl -> ScrollableTooltip.scrollAmountX -= scroll
-                ! holdingShift && holdingCtrl -> ScrollableTooltip.scaleOverride += (verticalAmount / 10f).toFloat() * ScrollableTooltip.scaleSpeed.value.toFloat()
+                ! holdingShift && holdingCtrl -> ScrollableTooltip.applyScaleScroll(verticalAmount)
                 else -> ScrollableTooltip.scrollAmountY += scroll
             }
             return true

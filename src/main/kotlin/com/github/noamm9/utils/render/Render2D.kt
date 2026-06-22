@@ -7,7 +7,6 @@ import com.github.noamm9.utils.NumbersUtils.plus
 import com.github.noamm9.utils.NumbersUtils.times
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.renderer.RenderPipelines
-import net.minecraft.client.renderer.texture.TextureAtlas
 import net.minecraft.resources.Identifier
 import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.ItemStack
@@ -19,8 +18,8 @@ import kotlin.math.sqrt
 object Render2D {
     fun Slot.highlight(ctx: GuiGraphicsExtractor, color: Color) = drawRect(ctx, x, y, 16, 16, color)
 
-    fun drawTexture(ctx: GuiGraphicsExtractor, texture: Identifier, x: Number, y: Number, width: Number, height: Number) {
-        ctx.blitSprite(RenderPipelines.GUI_TEXTURED, texture, x.toInt(), y.toInt(), width.toInt(), height.toInt())
+    fun drawTexture(ctx: GuiGraphicsExtractor, texture: Identifier, x: Number, y: Number, width: Number, height: Number, color: Color = Color.WHITE) {
+        ctx.blit(RenderPipelines.GUI_TEXTURED, texture, x.toInt(), y.toInt(), 0f, 0f, width.toInt(), height.toInt(), width.toInt(), height.toInt(), color.rgb)
     }
 
     fun drawRect(ctx: GuiGraphicsExtractor, x: Number, y: Number, width: Number, height: Number, color: Color = Color.WHITE) {
@@ -80,21 +79,10 @@ object Render2D {
         drawString(ctx, str, centerX, y, color, scale, shadow)
     }
 
-    fun renderItem(context: GuiGraphicsExtractor, item: ItemStack, x: Number, y: Number, scale: Number = 1) {
+    fun renderItem(context: GuiGraphicsExtractor, item: ItemStack, x: Number, y: Number) {
         context.pose().pushMatrix()
         context.pose().translate(x.toFloat(), y.toFloat())
-        context.pose().scale(scale.toFloat())
         context.item(item, 0, 0)
-        context.pose().popMatrix()
-    }
-
-    fun renderItem(context: GuiGraphicsExtractor, itemPath: String, x: Number, y: Number, size: Number) {
-        val location = Identifier.parse(itemPath)
-        val atlas = mc.textureManager.getTexture(Identifier.withDefaultNamespace("textures/atlas/blocks.png")) as TextureAtlas
-        val sprite = atlas.getSprite(location)
-        context.pose().pushMatrix()
-        context.pose().translate(x.toFloat(), y.toFloat())
-        context.blit(sprite.atlasLocation(), 0, 0, size.toInt(), size.toInt(), sprite.u0, sprite.u1, sprite.v0, sprite.v1)
         context.pose().popMatrix()
     }
 

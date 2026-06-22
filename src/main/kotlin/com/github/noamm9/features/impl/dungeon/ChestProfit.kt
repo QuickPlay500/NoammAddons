@@ -4,22 +4,26 @@ import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.init.NetworkLoop.priceData
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
+import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.location.WorldType
+import com.github.noamm9.utils.remove
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.highlight
 import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.startsWithOneOf
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
@@ -40,6 +44,8 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
 
     private val chestsToHighlight = mutableListOf<DungeonChest>()
     private var sortedChestsCache = emptyList<DungeonChest>()
+
+    private val feather by lazy { ItemStack(Items.FEATHER) }
 
     override fun init() {
         register<WorldChangeEvent> {
@@ -188,7 +194,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                     pose.pushMatrix()
                     pose.scale(0.7f)
                     pose.translate((event.slot.x + 7) / 0.7f, (event.slot.y + 7) / 0.7f)
-                    Render2D.renderItem(event.context, "minecraft:item/feather", 0, 0, 16)
+                    Render2D.renderItem(event.context, feather, 0, 0)
                     pose.popMatrix()
                 }
             }

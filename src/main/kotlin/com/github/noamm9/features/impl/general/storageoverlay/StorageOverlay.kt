@@ -13,7 +13,6 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.network.WebUtils
 import com.github.noamm9.utils.network.data.StorageData
-import kotlinx.coroutines.runBlocking
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.nbt.CompoundTag
@@ -29,11 +28,11 @@ import kotlin.jvm.optionals.getOrNull
 
 object StorageOverlay: Feature("Shows all storage pages in an overlay when opening storage.", toggled = true) {
     val scaleSetting by SliderSetting("Scale", 1.0f, 0.5f, 2.0f, 0.05f).withDescription("The scale of the menu")
-    val columnsSetting by SliderSetting("Columns", 3, 1, 10, 1).withDescription("The number of pages to show next to each other horizontally")
-    val maxHeightSetting by SliderSetting("Max Height", 324, 80, 600, 1).withDescription("the maximum height of the entire menu")
-    val scrollSpeedSetting by SliderSetting("Scroll Speed", 10, 1, 50, 1).withDescription("how fast you scroll")
-    val retainScrollSetting by ToggleSetting("Retain Scroll", true).withDescription("Whether to it keep the scroll offset after closing the menu")
-    val enableTooltipInStorage by ToggleSetting("Tooltip Scroll").withDescription("Whether to enable Item Tooltip Scrolling. (requires ${ScrollableTooltip.name} to be enabled)")
+    val columnsSetting by SliderSetting("Columns", 3, 1, 10, 1).withDescription("The number of max pages to show on each row")
+    val maxHeightSetting by SliderSetting("Max Height", 324, 80, 600, 1).withDescription("The maximum height of the entire menu")
+    val scrollSpeedSetting by SliderSetting("Scroll Speed", 10, 1, 50, 1).withDescription("How fast you scroll")
+    val retainScrollSetting by ToggleSetting("Retain Scroll", true).withDescription("Keeps the scroll offset after closing the menu")
+    val enableTooltipInStorage by ToggleSetting("Tooltip Scroll").withDescription("Enables Item Tooltip Scrolling. (requires ${ScrollableTooltip.name} to be enabled)")
 
     private val storageDir by lazy { File(mc.gameDirectory, "config/${NoammAddons.MOD_NAME}/storage").also(File::mkdirs) }
     private val dataFile get() = File(storageDir, "${mc.user.profileId}.nbt")
@@ -192,7 +191,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         return children.isEmpty() && file.delete()
     }
 
-    private fun loadFromApi() = runBlocking {
+    private suspend fun loadFromApi() {
         WebUtils.getAs<StorageData>("https://api.noamm.org/hypixel/storage/${mc.user.profileId}").onSuccess {
             val data = TreeMap<StoragePage, NBTInventory?>()
             it.enderchest.forEach { (i, stacks) -> data[StoragePage(i)] = NBTInventory(stacks) }
