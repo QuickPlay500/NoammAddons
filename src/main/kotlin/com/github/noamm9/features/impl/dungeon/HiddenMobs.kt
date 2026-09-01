@@ -2,10 +2,10 @@ package com.github.noamm9.features.impl.dungeon
 
 //#if CHEAT
 
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
@@ -25,7 +25,7 @@ object HiddenMobs: Feature("Reveals invisible mobs in dungeons.") {
             if (! showFels.value && ! showSa.value && ! showStealthy.value) return@register
             if (! LocationUtils.inDungeon) return@register
             val packet = event.packet as? ClientboundSetEntityDataPacket ?: return@register
-            val entity = mc.level?.getEntity(packet.id)?.takeIf { it.isInvisible } ?: return@register
+            val entity = level.getEntity(packet.id)?.takeIf { it.isInvisible } ?: return@register
             val name = entity.displayName.string.trim()
 
             val isFel = entity is EnderMan && showFels.value && name == "Dinnerbone"

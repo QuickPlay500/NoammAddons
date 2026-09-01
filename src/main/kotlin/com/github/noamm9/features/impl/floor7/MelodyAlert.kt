@@ -1,11 +1,11 @@
 package com.github.noamm9.features.impl.floor7
 
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.TextInputSetting
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.TextInputSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.location.LocationUtils
@@ -59,7 +59,7 @@ object MelodyAlert: Feature() {
             for (i in progressSlots.indices) {
                 if (i <= currentStage) continue
 
-                if (mc.player !!.containerMenu.getSlot(progressSlots[i]).item.`is`(Items.LIME_TERRACOTTA)) {
+                if (player.containerMenu.getSlot(progressSlots[i]).item.`is`(Items.LIME_TERRACOTTA)) {
                     val progress = if (mode.value == 0) "${i + 1}/4" else "${(i + 1) * 25}%"
                     ChatUtils.sendPartyMessage("${msg.value} $progress")
                     currentStage = i

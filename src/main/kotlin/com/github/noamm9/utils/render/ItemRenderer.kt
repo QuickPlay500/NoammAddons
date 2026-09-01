@@ -2,7 +2,6 @@ package com.github.noamm9.utils.render
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.features.impl.visual.RevertAxes
 import com.mojang.blaze3d.platform.Lighting
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -33,7 +32,8 @@ class ItemRenderer(vertexConsumers: MultiBufferSource.BufferSource): PictureInPi
         val guiScale = mc.window.guiScale
         val guiPose = PoseStack()
 
-        fun renderItem(item: GuiItemRenderState) {
+        fun renderItem(batchedItem: BatchedItem) {
+            val item = batchedItem.state
             guiPose.pushPose()
             guiPose.last().pose().mul(matrix4.set(
                 item.pose().m00(), item.pose().m10(), 0f, 0f,
@@ -42,7 +42,7 @@ class ItemRenderer(vertexConsumers: MultiBufferSource.BufferSource): PictureInPi
                 item.pose().m20(), item.pose().m21(), 0f, 1f
             ))
             guiPose.translate((item.x() + 8.0) * guiScale, (item.y() + 8.0) * guiScale, 150.0)
-            guiPose.scale(16f * guiScale, - 16f * guiScale, 16f * guiScale)
+            guiPose.scale(16f * guiScale * batchedItem.scale, - 16f * guiScale * batchedItem.scale, 16f * guiScale * batchedItem.scale)
             item.itemStackRenderState().submit(guiPose, dispatcher.submitNodeStorage, LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, 0)
             guiPose.popPose()
         }
@@ -65,8 +65,8 @@ class ItemRenderer(vertexConsumers: MultiBufferSource.BufferSource): PictureInPi
         private val height: Int,
         private val scissor: ScreenRectangle?,
         private val bounds: ScreenRectangle?,
-        val list2d: List<GuiItemRenderState>,
-        val list3d: List<GuiItemRenderState>,
+        val list2d: List<BatchedItem>,
+        val list3d: List<BatchedItem>,
     ): PictureInPictureRenderState {
         override fun x0() = 0
         override fun y0() = 0
@@ -78,16 +78,15 @@ class ItemRenderer(vertexConsumers: MultiBufferSource.BufferSource): PictureInPi
     }
 
     companion object {
-        private val list2d = mutableListOf<GuiItemRenderState>()
-        private val list3d = mutableListOf<GuiItemRenderState>()
+        private val list2d = mutableListOf<BatchedItem>()
+        private val list3d = mutableListOf<BatchedItem>()
 
-        fun drawBatchedItemStack(ctx: GuiGraphicsExtractor, item: ItemStack, x: Int, y: Int) {
+        fun drawBatchedItemStack(ctx: GuiGraphicsExtractor, item: ItemStack, x: Int, y: Int, scale: Float = 1f) {
             if (item.isEmpty) return
-            val displayItem = RevertAxes.shouldReplace(item) ?: return
             val tracking = TrackingItemStackRenderState()
-            mc.itemModelResolver.updateForTopItem(tracking, displayItem, ItemDisplayContext.GUI, mc.level, mc.player, 0)
+            mc.itemModelResolver.updateForTopItem(tracking, item, ItemDisplayContext.GUI, mc.level, mc.player, 0)
             val state = GuiItemRenderState(Matrix3x2f(ctx.pose()), tracking, x, y, ctx.scissorStack.peek())
-            (if (tracking.usesBlockLight()) list3d else list2d).add(state)
+            (if (tracking.usesBlockLight()) list3d else list2d).add(BatchedItem(state, scale))
         }
 
         fun endItemRendererBatch(ctx: GuiGraphicsExtractor) {
@@ -101,4 +100,6 @@ class ItemRenderer(vertexConsumers: MultiBufferSource.BufferSource): PictureInPi
             list2d.clear(); list3d.clear();
         }
     }
+
+    data class BatchedItem(val state: GuiItemRenderState, val scale: Float)
 }

@@ -3,6 +3,7 @@ import groovy.json.JsonSlurper
 import org.gradle.jvm.tasks.Jar
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.util.*
 
 plugins {
     id("net.fabricmc.fabric-loom")
@@ -23,23 +24,23 @@ idea {
     }
 }
 
-val minecraft_version: String by project
-val loader_version: String by project
-val fabric_kotlin_version: String by project
-val mod_version: String by project
-val maven_group: String by project
-val mod_name: String by project
-val fabric_version: String by project
-val modmenu_version: String by project
-val iris_version: String by project
-val ktor_version: String by project
+val minecraft_version = project.property("minecraft_version") as String
+val loader_version = project.property("loader_version") as String
+val fabric_kotlin_version = project.property("fabric_kotlin_version") as String
+val mod_version = project.property("mod_version") as String
+val maven_group = project.property("maven_group") as String
+val mod_name = project.property("mod_name") as String
+val fabric_version = project.property("fabric_version") as String
+val modmenu_version = project.property("modmenu_version") as String
+val iris_version = project.property("iris_version") as String
+val ktor_version = project.property("ktor_version") as String
 
 version = mod_version
 group = maven_group
 
 base { archivesName.set(mod_name) }
 
-val bundled by configurations.creating
+val bundled = configurations.create("bundled")
 val processedIncludeJarsDir = layout.buildDirectory.dir("processIncludeJars")
 
 configurations {
@@ -48,7 +49,7 @@ configurations {
 
 repositories {
     maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
-    maven("https://maven.terraformersmc.com/")
+    maven("https://maven.terraformersmc.com/releases/")
     maven("https://api.modrinth.com/maven")
     maven("https://jitpack.io")
 }
@@ -64,13 +65,12 @@ dependencies {
     compileOnly("maven.modrinth:iris:$iris_version")
     compileOnly("com.terraformersmc:modmenu:$modmenu_version")
 
-    implementation("io.github.llamalad7:mixinextras-fabric:0.4.1")
-    annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.4.1")
+    compileOnly("io.github.llamalad7:mixinextras-fabric:0.5.4")
+    annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.5.4")
 
-    bundled("io.github.classgraph:classgraph:4.8.174")
+    bundled("io.github.classgraph:classgraph:4.8.191")
     bundled("com.github.Noamm9:datafixer:d60875927e")
     bundled("io.ktor:ktor-client-cio:$ktor_version")
-    bundled("io.ktor:ktor-client-websockets-jvm:$ktor_version")
     bundled("io.ktor:ktor-client-content-negotiation-jvm:$ktor_version")
     bundled("io.ktor:ktor-client-encoding:$ktor_version")
     bundled("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
@@ -122,6 +122,15 @@ fun ProcessResources.writeNestedJarMetadata() {
     }
 }
 
+fun ProcessResources.writeBuildInfo() {
+    doLast {
+        val props = Properties()
+        props.setProperty("ci", (System.getenv("GITHUB_ACTIONS") == "true").toString())
+        props.setProperty("built_at", System.currentTimeMillis().toString())
+        destinationDir.resolve("build-info.properties").outputStream().use { props.store(it, null) }
+    }
+}
+
 tasks.named<ProcessResources>("processResources") {
     doLast {
         destinationDir.resolve("fabric.mod.json").writeWithoutNestedJarMetadata()
@@ -131,6 +140,7 @@ tasks.named<ProcessResources>("processResources") {
 listOf("processCheatResources", "processLegitResources").forEach { taskName ->
     tasks.named<ProcessResources>(taskName) {
         writeNestedJarMetadata()
+        writeBuildInfo()
     }
 }
 

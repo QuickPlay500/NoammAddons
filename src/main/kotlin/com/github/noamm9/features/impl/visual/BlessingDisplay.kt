@@ -1,11 +1,11 @@
 package com.github.noamm9.features.impl.visual
 
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.dungeons.enums.Blessing
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.ChatFormatting
 import java.awt.Color
 
@@ -58,7 +58,7 @@ object BlessingDisplay: Feature("Displays the current active blessings in the du
                 val text = "${blessing.displayString} §f$valueString"
 
 
-                Render2D.drawString(context, text, 0, currentY.toInt(), color)
+                context.drawString(text, 0, currentY.toInt(), color)
 
                 maxWidth = maxOf(maxWidth, text.width().toFloat())
                 currentY += 9f

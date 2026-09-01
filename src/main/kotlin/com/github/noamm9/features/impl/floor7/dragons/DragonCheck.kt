@@ -1,8 +1,12 @@
 package com.github.noamm9.features.impl.floor7.dragons
 
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.MathUtils.xzInAABB
+import com.github.noamm9.utils.ScoreboardUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.remove
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.network.protocol.game.*
 import net.minecraft.sounds.SoundEvents
@@ -12,6 +16,16 @@ import net.minecraft.world.item.Items
 import net.minecraft.world.phys.Vec3
 
 object DragonCheck {
+    private val healthRegex = Regex("\\d+(?:\\.\\d+)?[bBmMkK]")
+    private val colorRegex = Regex("§.")
+
+    fun isAliveOnScoreboard(dragon: WitherDragonEnum) = ScoreboardUtils.getLines().any {
+        val line = it.unformattedText.remove(colorRegex) // why tf it still have colors???
+        line.contains(dragon.displayName, ignoreCase = true).also {
+            if (it) ChatUtils.debug("dragon", "tab line for ${dragon.name}: $line")
+        } && healthRegex.find(line)?.value != "0"
+    }
+
     fun handleSpawnPacket(particle: ClientboundLevelParticlesPacket) {
         if (particle.particle.type != ParticleTypes.FLAME) return
         if (particle.x % 1 != 0.0) return
@@ -64,7 +78,9 @@ object DragonCheck {
 
         WitherDragonEnum.entries.find { dragon ->
             spawnVec.xzInAABB(dragon.boxesDimensions) && dragon.state == WitherDragonState.SPAWNING
-        }?.setAlive(newId)
+        }?.setAlive(newId) ?: WitherDragonEnum.entries.find { dragon ->
+            dragon.state == WitherDragonState.ALIVE && dragon.entity == null && dragon.entityId == newId
+        }?.updateEntity(newId, hard = true)
     }
 
     fun dragonSprayed(packet: ClientboundSetEquipmentPacket) {

@@ -7,12 +7,11 @@ enum class WorldType(val tabName: String) {
     CrystalHollows("Crystal Hollows"),
     DarkAuction("Dark Auction"),
     DeepCaverns("Deep Caverns"),
-    Dungeon("Catacombs"),
     DungeonHub("Dungeon Hub"),
     DwarvenMines("Dwarven Mines"),
     End("The End"),
     Galatea("Galatea"),
-    Garden("Garden"),
+    Garden("Moonglade Marsh"),
     GoldMine("Gold Mine"),
     Home("Private Island"),
     Hub("Hub"),
@@ -23,5 +22,9 @@ enum class WorldType(val tabName: String) {
     Rift("The Rift"),
     SpiderDen("Spider"),
     LotusAtoll("Lotus Atoll"),
+    PrivateIslandGuest("Private Island Guest"),
+    GardenGuest("Garden Guest"),
+    TorrhusCanyon("Torrhus Canyon"),
+    Safari("Safari"),
     TheBarn("The Farming Islands");
 }

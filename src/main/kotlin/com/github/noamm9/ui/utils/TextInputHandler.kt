@@ -2,8 +2,9 @@ package com.github.noamm9.ui.utils
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.ui.clickgui.components.Style
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
@@ -39,6 +40,7 @@ class TextInputHandler(
 
     private var selection = text.length
     private var selectionWidth = 0f
+    private var selectionStartX = 0f
     private var textOffset = 0f
     private var caretX = 0f
 
@@ -63,9 +65,8 @@ class TextInputHandler(
         previousMousePos = mouseX to mouseY
 
         context.enableScissor(x.toInt(), y.toInt(), x.toInt() + width.toInt(), y.toInt() + height.toInt())
-        if (selectionWidth != 0f) Render2D.drawRect(
-            context,
-            x + caretX + 4f,
+        if (selectionWidth != 0f) context.drawRect(
+            x + selectionStartX + 4f - textOffset,
             y + 5f,
             selectionWidth,
             height - 10,
@@ -74,16 +75,16 @@ class TextInputHandler(
 
         if (listening) {
             val time = System.currentTimeMillis()
-            if (time - caretBlinkTime < 500) Render2D.drawRect(
-                context,
+            if (time - caretBlinkTime < 500) context.drawRect(
                 x + caretX + 4f - textOffset,
                 y + height / 3.4,
-                1, 9,
+                1,
+                9,
             )
             else if (time - caretBlinkTime > 1000) caretBlinkTime = time
         }
 
-        Render2D.drawString(context, text + suffix.orEmpty(), x + 4f - textOffset, y + height / 2f - 5)
+        context.drawString(text + suffix.orEmpty(), x + 4f - textOffset, y + height / 2f - 5)
 
         context.disableScissor()
     }
@@ -292,10 +293,13 @@ class TextInputHandler(
 
     private fun updateCaretPosition() {
         if (selection != caret) {
+            selectionStartX = textWidth(text.substringSafe(0, min(selection, caret)))
             selectionWidth = textWidth(text.substringSafe(selection, caret))
-            if (selection <= caret) selectionWidth *= - 1
         }
-        else selectionWidth = 0f
+        else {
+            selectionStartX = 0f
+            selectionWidth = 0f
+        }
 
         if (caret != 0) {
             val previousX = caretX
@@ -320,6 +324,7 @@ class TextInputHandler(
     private fun clearSelection() {
         selection = caret
         selectionWidth = 0f
+        selectionStartX = 0f
     }
 
     private fun selectWord() {
@@ -396,15 +401,18 @@ class TextInputHandler(
     }
 
     private fun String.substringSafe(from: Int, to: Int): String {
-        val f = min(from, to).coerceAtLeast(0)
-        val t = max(to, from)
-        if (t > length) return substring(f)
+        val f = min(from, to).coerceIn(0, length)
+        val t = max(to, from).coerceIn(0, length)
+        if (t <= f) return ""
         return substring(f, t)
     }
 
-    private fun String.removeRangeSafe(from: Int, to: Int): String =
-        removeRange(min(from, to), max(to, from))
+    private fun String.removeRangeSafe(from: Int, to: Int): String {
+        val f = min(from, to).coerceIn(0, length)
+        val t = max(to, from).coerceIn(0, length)
+        if (f >= t) return this
+        return removeRange(f, t)
+    }
 
-    private fun String.dropAt(at: Int, amount: Int): String =
-        removeRangeSafe(at, at + amount)
+    private fun String.dropAt(at: Int, amount: Int) = removeRangeSafe(at, at + amount)
 }

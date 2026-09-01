@@ -5,7 +5,7 @@ import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.equalsOneOf
@@ -99,14 +99,14 @@ object M7CooldownHud: Feature(name = "M7 Cooldown Hud",description = "M7 Arch/Be
             // Background
             ctx.fill(0, 0, width.toInt(), height.toInt(), 0xAA4E4E4E.toInt())
             // Header
-            drawString(ctx, "Buff", col1, 0, Color(0x00F0FF), shadow = true)
-            drawString(ctx, "CD",   col2, 0, Color(0x00F0FF), shadow = true)
+            ctx.drawString("Buff", col1, 0, Color(0x00F0FF), shadow = true)
+            ctx.drawString("CD",   col2, 0, Color(0x00F0FF), shadow = true)
 
             rows.forEachIndexed { i, row ->
                 val y = (i + 1) * rowHeight
-                drawString(ctx, row.label, col0, y, Color(0xFFFFFF), shadow = true)
-                drawString(ctx, row.buff,  col1, y, Color(0x55FF55), shadow = true)
-                drawString(ctx, row.cd,    col2, y, Color(0xFFAA00), shadow = true)
+                ctx.drawString(row.label, col0, y, Color(0xFFFFFF), shadow = true)
+                ctx.drawString(row.buff,  col1, y, Color(0x55FF55), shadow = true)
+                ctx.drawString(row.cd,    col2, y, Color(0xFFAA00), shadow = true)
             }
 
             width to height

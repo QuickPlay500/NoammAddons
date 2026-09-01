@@ -7,8 +7,8 @@ import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.EntityUnloadEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.DungeonListener

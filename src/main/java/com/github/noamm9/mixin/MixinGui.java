@@ -1,18 +1,18 @@
 package com.github.noamm9.mixin;
 
+import com.github.noamm9.debug.DebugHUD;
 import com.github.noamm9.event.EventBus;
 import com.github.noamm9.event.impl.ActionBarMessageEvent;
 import com.github.noamm9.event.impl.RenderOverlayEvent;
 import com.github.noamm9.features.impl.general.FEAT_ItemRarity;
 import com.github.noamm9.features.impl.misc.Camera;
+import com.github.noamm9.features.impl.misc.Tweaks;
 import com.github.noamm9.features.impl.visual.DarkMode;
 import com.github.noamm9.features.impl.visual.PlayerHud;
 import com.github.noamm9.features.impl.visual.Scoreboard;
-import com.github.noamm9.utils.DebugHUD;
 import com.github.noamm9.utils.location.LocationUtils;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
@@ -35,10 +35,6 @@ public abstract class MixinGui {
 
     @Shadow @Nullable private Component title;
     @Shadow @Nullable private Component subtitle;
-
-    @Shadow
-    public abstract Font getFont();
-
 
     @Inject(method = "extractArmor", at = @At("HEAD"), cancellable = true)
     private static void renderArmor(GuiGraphicsExtractor graphics, Player player, int yLineBase, int numHealthRows, int healthRowHeight, int xLeft, CallbackInfo ci) {
@@ -83,14 +79,14 @@ public abstract class MixinGui {
     public void onRenderHud(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         if (this.minecraft.options.hideGui) return;
         if (this.minecraft.debugEntries.isOverlayVisible()) return;
-        EventBus.post(new RenderOverlayEvent(graphics, deltaTracker));
+        EventBus.post(new RenderOverlayEvent(graphics));
 
         DebugHUD.render(graphics);
     }
 
     @Inject(method = "extractRenderState", at = @At(value = "HEAD"))
     public void onRenderHudPre(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
-        if (!DarkMode.getTintHud().getValue()) DarkMode.drawOverlay(graphics);
+        if (! DarkMode.getTintHud().getValue()) DarkMode.drawOverlay(graphics);
     }
 
     @Inject(method = "extractRenderState", at = @At(value = "TAIL"))
@@ -127,9 +123,14 @@ public abstract class MixinGui {
 
     @Inject(method = "extractSlot", at = @At("HEAD"))
     private void onRenderHotbarSlot(GuiGraphicsExtractor graphics, int x, int y, DeltaTracker deltaTracker, Player player, ItemStack itemStack, int seed, CallbackInfo ci) {
-        if (!FEAT_ItemRarity.INSTANCE.enabled) return;
+        if (! FEAT_ItemRarity.INSTANCE.enabled) return;
         if (FEAT_ItemRarity.getDrawOnHotbar().getValue()) {
             FEAT_ItemRarity.onSlotDraw(graphics, itemStack, x, y);
         }
+    }
+
+    @Inject(method = "extractSelectedItemName", at = @At("HEAD"), cancellable = true)
+    private void onItemOverlayMessage(GuiGraphicsExtractor graphics, CallbackInfo ci) {
+        if (Tweaks.INSTANCE.enabled && Tweaks.getHideHotbarTooltips().getValue()) ci.cancel();
     }
 }

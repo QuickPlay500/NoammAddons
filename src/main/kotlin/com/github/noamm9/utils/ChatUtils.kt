@@ -3,12 +3,14 @@ package com.github.noamm9.utils
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.NoammAddons.scope
+import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.EventBus.register
-import com.github.noamm9.event.EventListener
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.RenderOverlayEvent
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.init.types.ISelfInit
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import net.minecraft.ChatFormatting
@@ -25,12 +27,12 @@ import java.util.concurrent.atomic.*
 import kotlin.coroutines.resume
 import kotlin.math.roundToInt
 
-object ChatUtils {
-    private val queue = ConcurrentLinkedQueue<String>()
+object ChatUtils: ISelfInit {
+    private val queue = ConcurrentLinkedQueue<Pair<String, Long>>()
     private val isProcessing = AtomicBoolean(false)
     @Volatile private var lastSentTime = 0L
 
-    fun init() {
+    override fun init() {
         register<PacketEvent.Sent> {
             if (event.packet !is ServerboundChatPacket &&
                 event.packet !is ServerboundChatCommandPacket &&
@@ -43,42 +45,39 @@ object ChatUtils {
 
     private fun process() {
         if (! isProcessing.compareAndSet(false, true)) return
-
         scope.launch {
-            try {
-                while (queue.isNotEmpty()) {
-                    val str = queue.poll()?.removeFormatting() ?: break
+            while (isActive && queue.isNotEmpty()) {
+                var (str, time) = queue.poll() ?: break
+                str = str.removeFormatting()
 
-                    val waitTime = 300L - (System.currentTimeMillis() - lastSentTime)
-                    if (waitTime > 0) delay(waitTime)
+                val waitTime = time - (System.currentTimeMillis() - lastSentTime)
+                if (waitTime > 0) delay(waitTime)
 
-                    suspendCancellableCoroutine { cont ->
-                        mc.execute {
-                            val conn = mc.player?.connection
-                            if (conn != null) {
-                                if (str.startsWith("/")) conn.sendCommand(str.removePrefix("/"))
-                                else conn.sendChat(str)
-                            }
-                            lastSentTime = System.currentTimeMillis()
-                            cont.resume(Unit)
+                suspendCancellableCoroutine { cont ->
+                    mc.execute {
+                        val conn = mc.player?.connection
+                        if (conn != null) {
+                            if (str.startsWith("/")) conn.sendCommand(str.removePrefix("/"))
+                            else conn.sendChat(str)
                         }
+                        lastSentTime = System.currentTimeMillis()
+                        cont.resume(Unit)
                     }
                 }
             }
-            finally {
-                isProcessing.set(false)
-                if (queue.isNotEmpty()) process()
-            }
+        }.invokeOnCompletion {
+            isProcessing.set(false)
+            if (queue.isNotEmpty()) process()
         }
     }
 
-    fun sendMessage(message: String) {
-        queue.add(message)
+    fun sendMessage(message: String, ms: Long = 300L) {
+        queue.add(message to ms)
         process()
     }
 
-    fun sendCommand(command: String) {
-        queue.add("/" + command.removePrefix("/"))
+    fun sendCommand(command: String, ms: Long = 300L) {
+        queue.add("/" + command.removePrefix("/") to ms)
         process()
     }
 
@@ -197,12 +196,12 @@ object ChatUtils {
         ChatUtils.chat(if (prefix) Component.literal(NoammAddons.PREFIX + " ").append(mainComponent) else mainComponent)
     }
 
-    val titleRenderer = EventListener.create<RenderOverlayEvent> {
+    private val titleRenderer = EventBus.listener<RenderOverlayEvent> {
         val x = mc.window.guiScaledWidth / 2f
         val height = mc.window.guiScaledHeight
         val y = height / 2f - (height * 0.056).roundToInt()
 
-        Render2D.drawCenteredString(event.context, title, x, y, scale = 2.5)
-        Render2D.drawCenteredString(event.context, subtitle, x, y + (height / 15.42f).roundToInt(), scale = 1.5)
+        event.context.drawCenteredString(title, x, y, scale = 2.5)
+        event.context.drawCenteredString(subtitle, x, y + (height / 15.42f).roundToInt(), scale = 1.5)
     }
 }

@@ -4,9 +4,9 @@ package com.github.noamm9.features.impl.misc
 
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.Utils.send
