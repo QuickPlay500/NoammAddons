@@ -56,7 +56,7 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
     val announceSplits by ToggleSetting("Announce Splits in Party Chat",false).showIf { dragonPriorityToggle.value }
 
     var priorityDragon = WitherDragonEnum.None
-
+    var hasAnnounced = false
     private const val scoreboardGraceTicks = 40 // how long the dragon needs to be off scoreboard for it to count as dead
 
     private val smoothedVelocities = ConcurrentHashMap<Int, Vec3>()
@@ -71,6 +71,7 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
             priorityDragon = WitherDragonEnum.None
             WitherDragonEnum.reset()
             smoothedVelocities.clear()
+            hasAnnounced = false;
         }
 
         register<MainThreadPacketReceivedEvent.Pre> {
