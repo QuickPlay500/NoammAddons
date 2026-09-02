@@ -5,9 +5,9 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.utils.render.RenderHelper.height
 import com.github.noamm9.utils.render.RenderHelper.width
+import gg.essential.universal.UKeyboard
 import net.minecraft.network.chat.Component
 import net.minecraft.sounds.SoundEvents
-import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 @Suppress("unused")
@@ -32,7 +32,7 @@ object CompTest: Feature("A test feature used to test every UI component.") {
 
     val secondaryColor by ColorSetting("Secondary", Color.MAGENTA).withDescription("A secondary color used for gradients and specialized UI elements.")
 
-    val panicBind by KeybindSetting("test Keybind", GLFW.GLFW_KEY_P).withDescription("Pressing this key will instantly disable every active module in the mod.")
+    val panicBind by KeybindSetting("test Keybind", UKeyboard.KEY_P).withDescription("Pressing this key will instantly disable every active module in the mod.")
 
     val customName by TextInputSetting("test text", "Player123").withDescription("The custom name displayed above your head or used in chat-based modules.")
 
@@ -43,7 +43,7 @@ object CompTest: Feature("A test feature used to test every UI component.") {
     val testHud = hudElement("testHud") { context, _ ->
         val str = "testHud: FPS=${mc.fps}"
         context.text(mc.font, str, 0, 0, Color.white.rgb, true)
-        return@hudElement str.width().toFloat() to str.height().toFloat()
+        return@hudElement str.width() to str.height()
     }
 
     override fun onEnable() {

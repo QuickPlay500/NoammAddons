@@ -14,12 +14,11 @@ import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
-import com.github.noamm9.utils.network.WebUtils
+import com.github.noamm9.utils.network.NoammAPI
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.network.chat.Component
 
@@ -69,6 +68,14 @@ object NaCommand: ICommandProvider {
                 ChatUtils.modMessage("§aTPS: §f${ServerUtils.tps}")
             }
         }
+
+        refillCommand("ep", "ENDER_PEARL", "ender_pearl", 16)
+        refillCommand("ij", "INFLATABLE_JERRY", "inflatable_jerry", 64)
+        refillCommand("sl", "SPIRIT_LEAP", "spirit_leap", 16)
+        refillCommand("sb", "SUPERBOOM_TNT", "superboom_tnt", 64)
+        refillCommand("dd", "DUNGEON_DECOY", "dungeon_decoy", 64)
+        refillCommand("tap", "TOXIC_ARROW_POISON", "toxic_arrow_poison", 64)
+        refillCommand("twap", "TWILIGHT_ARROW_POISON", "twilight_arrow_poison", 64)
 
         literal("debug") {
             description("Debug flags")
@@ -212,13 +219,25 @@ object NaCommand: ICommandProvider {
         ChatUtils.modMessage("§aCustom leap order set to: §f$sortingType §awith players: §f${validPlayers.joinToString(", ")}")
     }
 
+    private fun CommandBuilder.refillCommand(name: String, itemId: String, sackName: String, defaultAmount: Int) {
+        literal(name) {
+            description("Refills ${sackName.replace('_', ' ')} from sacks")
+            runs { refill(itemId, sackName, defaultAmount) }
+        }
+    }
+
+    private fun refill(itemId: String, sackName: String, amount: Int) {
+        val inventory = NoammAddons.mc.player?.inventory ?: return
+        val currentAmount = inventory.sumOf { stack -> if (stack.skyblockId == itemId) stack.count else 0 }
+        val missingAmount = amount - currentAmount
+        if (missingAmount > 0) ChatUtils.sendCommand("gfs $sackName $missingAmount")
+    }
+
     private fun sendRtca(name: String = NoammAddons.mc.user.name) = NoammAddons.scope.launch(Dispatchers.IO) {
-        WebUtils.getAs<RtcaData>("https://api.noamm.org/hypixel/rtca/$name").onSuccess {
-            // ChatUtils.modMessage("${it.name}: ${it.runs} (${formatClassRuns(it.classes)})")
+        NoammAPI.getRtca(name).onSuccess {
             ChatUtils.modMessage("${it.name} is ${it.runs} M7 runs away from ca50 (${formatClassRuns(it.classes)})")
         }.onFailure {
             ChatUtils.modMessage("An error occurred meow! (${it.message})")
-            it.printStackTrace()
         }
     }
 
@@ -227,7 +246,4 @@ object NaCommand: ICommandProvider {
             "${name.take(4).uppercaseFirst()} $runs"
         }
     }
-
-    @Serializable
-    private data class RtcaData(val name: String, val runs: Int, val classes: Map<String, Int>)
 }

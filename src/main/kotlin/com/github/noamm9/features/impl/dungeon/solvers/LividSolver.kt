@@ -4,23 +4,20 @@ import com.github.noamm9.config.types.ColorSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.unformattedText
-import com.github.noamm9.utils.ColorUtils
 import com.github.noamm9.utils.MathUtils.add
-import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.Utils.favoriteColor
-import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener.dungeonTeammates
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
-import com.github.noamm9.utils.render.Render3D.renderString
-import com.github.noamm9.utils.render.Render3D.renderTracer
 import com.github.noamm9.utils.render.RenderHelper.renderVec
 import com.github.noamm9.utils.render.RenderHelper.width
+import com.github.noamm9.utils.render.world.Render3D.renderString
+import com.github.noamm9.utils.render.world.Render3D.renderTracer
+import gg.essential.universal.USound
 import net.minecraft.client.player.AbstractClientPlayer
-import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.core.BlockPos
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.entity.decoration.ArmorStand
@@ -51,7 +48,7 @@ object LividSolver: Feature() {
     private val ceilingWoolBlock = BlockPos(5, 108, 40)
     private var lividId: Int? = null
 
-    private const val ticks = 390
+    private const val ticks = 350
     private var timer = - 1
 
     override fun init() {
@@ -60,7 +57,7 @@ object LividSolver: Feature() {
             val color = ColorUtils.colorCodeByPercent(ticks - displayTicks, ticks, true)
             val text = "&5Livid Invulnerability: $color${(displayTicks / 20.0).toFixed(1)}"
             ctx.drawCenteredString(text, 0, 0)
-            text.width().toFloat() to 9f
+            text.width() to 9f
         }
 
         register<CheckEntityGlowEvent> {
@@ -113,7 +110,7 @@ object LividSolver: Feature() {
             if (timer > 0) timer --
             if (timer == 0) {
                 if (iceSprayTitle.value) ChatUtils.showTitle("&bIce Spray Livid!")
-                if (iceSpraySound.value) mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_PLING, 1f))
+                if (iceSpraySound.value) USound.playSoundStatic(SoundEvents.NOTE_BLOCK_PLING, 0.25f, 1f)
                 timer = - 1
             }
         }

@@ -10,7 +10,7 @@ import kotlin.collections.ArrayDeque
 
 /**
  * Taken from Starred's library
- * Under BSD 3-Clause License
+ * Under BSD 3-Clause License https://github.com/skies-starred/library/blob/master/LICENSE
  * https://github.com/skies-starred/library/blob/master/src/main/kotlin/xyz/aerii/library/handlers/minecraft/AbstractWords.kt
  * Modified by Noamm9
  */
@@ -257,7 +257,7 @@ abstract class AhoCorasick {
                 continue
             }
 
-            state = state.goto.get(chars[i]) ?: root
+            state = state.goto.getOrElse(chars[i]) { null } ?: root
 
             b[bl] = chars[i]
             bs[bl] = styles[i]

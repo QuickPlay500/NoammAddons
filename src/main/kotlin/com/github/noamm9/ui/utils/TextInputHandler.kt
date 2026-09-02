@@ -1,16 +1,17 @@
 package com.github.noamm9.ui.utils
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.Render2D.scissor
 import com.github.noamm9.utils.render.RenderHelper.width
+import gg.essential.universal.UKeyboard
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.util.StringUtil
-import org.lwjgl.glfw.GLFW
 import kotlin.math.max
 import kotlin.math.min
 
@@ -64,7 +65,7 @@ class TextInputHandler(
         if (previousMousePos != mouseX to mouseY) mouseDragged(mouseX)
         previousMousePos = mouseX to mouseY
 
-        context.enableScissor(x.toInt(), y.toInt(), x.toInt() + width.toInt(), y.toInt() + height.toInt())
+        context.scissor(x, y, width, height)
         if (selectionWidth != 0f) context.drawRect(
             x + selectionStartX + 4f - textOffset,
             y + 5f,
@@ -127,7 +128,7 @@ class TextInputHandler(
     fun keyPressed(input: KeyEvent): Boolean {
         if (! listening) return false
         val returnValue = when (input.key) {
-            GLFW.GLFW_KEY_BACKSPACE -> {
+            UKeyboard.KEY_BACKSPACE -> {
                 if (selection != caret) deleteSelection()
                 else if (input.hasControlDown()) {
                     val previousSpace = getPreviousSpace()
@@ -142,7 +143,7 @@ class TextInputHandler(
                 selection != caret || input.hasControlDown() || caret != 0
             }
 
-            GLFW.GLFW_KEY_DELETE -> {
+            UKeyboard.KEY_DELETE -> {
                 if (selection != caret) deleteSelection()
                 else if (input.hasControlDown()) {
                     val nextSpace = getNextSpace()
@@ -157,7 +158,7 @@ class TextInputHandler(
                 selection != caret || input.hasControlDown() || caret != text.length
             }
 
-            GLFW.GLFW_KEY_RIGHT -> {
+            UKeyboard.KEY_RIGHT -> {
                 if (caret != text.length) {
                     caret = if (input.hasControlDown()) getNextSpace() else caret + 1
                     if (! input.hasShiftDown()) selection = caret
@@ -166,7 +167,7 @@ class TextInputHandler(
                 else false
             }
 
-            GLFW.GLFW_KEY_LEFT -> {
+            UKeyboard.KEY_LEFT -> {
                 if (caret != 0) {
                     caret = if (input.hasControlDown()) getPreviousSpace() else caret - 1
                     if (! input.hasShiftDown()) selection = caret
@@ -175,19 +176,19 @@ class TextInputHandler(
                 else false
             }
 
-            GLFW.GLFW_KEY_HOME -> {
+            UKeyboard.KEY_HOME -> {
                 caret = 0
                 if (! input.hasShiftDown()) selection = caret
                 true
             }
 
-            GLFW.GLFW_KEY_END -> {
+            UKeyboard.KEY_END -> {
                 caret = text.length
                 if (! input.hasShiftDown()) selection = caret
                 true
             }
 
-            GLFW.GLFW_KEY_ESCAPE, GLFW.GLFW_KEY_ENTER -> {
+            UKeyboard.KEY_ESCAPE, UKeyboard.KEY_ENTER -> {
                 listening = false
                 true
             }
@@ -195,12 +196,12 @@ class TextInputHandler(
             else -> {
                 if (input.hasControlDown() && ! input.hasShiftDown()) {
                     when (input.key) {
-                        GLFW.GLFW_KEY_V -> {
+                        UKeyboard.KEY_V -> {
                             insert(NoammAddons.mc.keyboardHandler.clipboard)
                             true
                         }
 
-                        GLFW.GLFW_KEY_C -> {
+                        UKeyboard.KEY_C -> {
                             if (caret != selection) {
                                 NoammAddons.mc.keyboardHandler.clipboard = text.substringSafe(caret, selection)
                                 true
@@ -208,7 +209,7 @@ class TextInputHandler(
                             else false
                         }
 
-                        GLFW.GLFW_KEY_X -> {
+                        UKeyboard.KEY_X -> {
                             if (caret != selection) {
                                 NoammAddons.mc.keyboardHandler.clipboard = text.substringSafe(caret, selection)
                                 deleteSelection()
@@ -217,23 +218,23 @@ class TextInputHandler(
                             else false
                         }
 
-                        GLFW.GLFW_KEY_A -> {
+                        UKeyboard.KEY_A -> {
                             selection = 0
                             caret = text.length
                             true
                         }
 
-                        GLFW.GLFW_KEY_W -> {
+                        UKeyboard.KEY_W -> {
                             selectWord()
                             true
                         }
 
-                        GLFW.GLFW_KEY_Z -> {
+                        UKeyboard.KEY_Z -> {
                             undo()
                             true
                         }
 
-                        GLFW.GLFW_KEY_Y -> {
+                        UKeyboard.KEY_Y -> {
                             redo()
                             true
                         }

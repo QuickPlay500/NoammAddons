@@ -24,6 +24,7 @@ import com.github.noamm9.utils.render.Render2D.drawPlayerHead
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawTexture
 import com.github.noamm9.utils.render.RenderHelper.renderVec
+import gg.essential.universal.UGraphics
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.resources.Identifier
 import java.awt.Color
@@ -66,7 +67,7 @@ object MapRenderer: HudElement() {
         if (! MapConfig.mapExtraInfo.value) return
         if (! MapConfig.dungeonMapCheater.value && ! DungeonListener.dungeonStarted) return
 
-        val secretsStr = "&6Secrets: &b${ScoreCalculation.foundSecrets}&f/&e${DungeonScanner.secretCount}"
+        val secretsStr = "&6Secrets: &b${ScoreCalculation.foundSecrets}&f/&b${ScoreCalculation.secretsUntil300}&f/&e${DungeonScanner.secretCount}"
         val cryptsStr = colorCodeByPercent(ScoreCalculation.cryptsCount, 6) + "Crypts: ${ScoreCalculation.cryptsCount}"
         val scoreStr = "&eScore: ${colorizeScore(ScoreCalculation.score)}&r"
         val deathsStr = "&cDeaths: ${colorCodeByPercent(ScoreCalculation.deathCount, 4, true)}${ScoreCalculation.deathCount}&r"
@@ -189,8 +190,8 @@ object MapRenderer: HudElement() {
                         unq.updateBounds(roomSize, gapSize)
                         val secretsText = if (showSecrets) "${unq.foundSecrets}/${roomTile.data.secrets}" else ""
                         val maxLineW = unq.updateTextScale(1f, showSecrets, secretsText)
-                        var totalH = unq.cacheSplitName.size * mc.font.lineHeight.toFloat()
-                        if (showSecrets) totalH += mc.font.lineHeight
+                        var totalH = unq.cacheSplitName.size * UGraphics.getFontHeight().toFloat()
+                        if (showSecrets) totalH += UGraphics.getFontHeight()
 
                         if (maxLineW > 0 && totalH > 0) {
                             val sW = unq.cachedMaxWidth / maxLineW
@@ -200,7 +201,7 @@ object MapRenderer: HudElement() {
                     }
 
                     val totalLines = unq.cacheSplitName.size + (if (showSecrets) 1 else 0)
-                    val totalH = totalLines * mc.font.lineHeight * scale
+                    val totalH = totalLines * UGraphics.getFontHeight() * scale
 
                     var currentY = cY - totalH / 2
 
@@ -218,7 +219,7 @@ object MapRenderer: HudElement() {
                 1 -> ctx.drawCenteredString(
                     if (roomTile.data.secrets == 0) "0" else "${unq.foundSecrets}/${roomTile.data.secrets}",
                     cX,
-                    cY - mc.font.lineHeight / 2,
+                    cY - UGraphics.getFontHeight() / 2,
                     color,
                     MapConfig.textScale.value
                 )

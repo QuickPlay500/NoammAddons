@@ -15,6 +15,8 @@ val softwareComponentFactory = project.serviceOf<SoftwareComponentFactory>()
 val sourceSets = the<SourceSetContainer>()
 val mainSourceSet = sourceSets.named("main").get()
 
+val mainJavaDir = layout.buildDirectory.dir("preprocessed/main/java")
+val mainKotlinDir = layout.buildDirectory.dir("preprocessed/main/kotlin")
 val cheatJavaDir = layout.buildDirectory.dir("preprocessed/cheat/java")
 val cheatKotlinDir = layout.buildDirectory.dir("preprocessed/cheat/kotlin")
 val legitJavaDir = layout.buildDirectory.dir("preprocessed/legit/java")
@@ -48,7 +50,9 @@ tasks.named<KotlinCompile>("compileCheatKotlin") {
 }
 
 tasks.named<KotlinCompile>("compileKotlin") {
-    compilerOptions { freeCompilerArgs.add("-Xjava-source-roots=${file("src/main/java").invariantSeparatorsPath}") }
+    dependsOn("preprocessMain")
+    setSource(mainKotlinDir)
+    compilerOptions { freeCompilerArgs.add("-Xjava-source-roots=${mainJavaDir.get().asFile.invariantSeparatorsPath}") }
 }
 
 tasks.named<JavaCompile>("compileCheatJava") {
@@ -60,7 +64,10 @@ tasks.named<JavaCompile>("compileCheatJava") {
 }
 
 tasks.named<JavaCompile>("compileJava") {
+    dependsOn("preprocessMain", "compileKotlin")
+    setSource(mainJavaDir)
     options.release.set(25)
+    classpath += files(tasks.named<KotlinCompile>("compileKotlin").flatMap { it.destinationDirectory })
 }
 
 tasks.named("cheatClasses") {

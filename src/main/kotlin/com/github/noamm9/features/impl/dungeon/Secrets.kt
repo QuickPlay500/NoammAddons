@@ -1,37 +1,25 @@
 package com.github.noamm9.features.impl.dungeon
 
-import com.github.noamm9.config.types.ColorSetting
-import com.github.noamm9.config.types.DropdownSetting
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.ToggleSetting
-import com.github.noamm9.event.impl.DungeonEvent
-import com.github.noamm9.event.impl.GameStartEvent
-import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.RenderWorldEvent
+import com.github.noamm9.config.types.*
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.ModCompatibility
-import com.github.noamm9.utils.ActionBarParser
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.unformattedText
-import com.github.noamm9.utils.ColorUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.Utils
 import com.github.noamm9.utils.Utils.send
 import com.github.noamm9.utils.dungeons.enums.SecretType
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
-import com.github.noamm9.utils.render.Render3D.renderBlock
 import com.github.noamm9.utils.render.RenderHelper.width
+import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.inventory.MenuType
-import net.minecraft.world.level.block.ButtonBlock
-import net.minecraft.world.level.block.FaceAttachedHorizontalDirectionalBlock
+import net.minecraft.world.level.block.*
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.level.block.state.properties.AttachFace
 import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
 import java.util.concurrent.*
@@ -41,8 +29,10 @@ object Secrets: Feature() {
 
     //#if CHEAT
     private val closeChest by ToggleSetting("Close Chest").section("Auto").withDescription("Automatically closes the secret chest for you.")
-    private val lever by ToggleSetting("Lever").withDescription("Full block Lever hitbox.").section("Secret Hitboxes")
-    @JvmStatic val button by ToggleSetting("Button").withDescription("Full block button hitbox.")
+    private val lever by ToggleSetting("Lever").withDescription("Expand block Lever hitbox.").section("Secret Hitboxes")
+    private val leverSize by SliderSetting("Lever Hitbox Size", 1.0, 8.0 / 16.0, 1.0, 0.01).showIf { button.value }
+    @JvmStatic val button by ToggleSetting("Button").withDescription("Expand button hitbox.")
+    private val buttonSize by SliderSetting("Button Hitbox Size", 1.0, 6.0 / 16.0, 1.0, 0.01).showIf { button.value }
     @JvmStatic val skull by ToggleSetting("Skulls").withDescription("Full block Skull hitbox.")
     @JvmStatic val mushroom by ToggleSetting("Mushroom").withDescription("Full block Mushroom hitbox.")
     //#endif
@@ -69,23 +59,8 @@ object Secrets: Feature() {
             }
 
             ctx.drawString(line, 0, 0)
-            return@hudElement line.width().toFloat() to 9f
+            return@hudElement line.width() to 9f
         }
-
-        //#if CHEAT
-        register<MainThreadPacketReceivedEvent.Pre> {
-            if (! closeChest.value) return@register
-            if (! LocationUtils.inDungeon) return@register
-            if (LocationUtils.inBoss) return@register
-            val packet = event.packet as? ClientboundOpenScreenPacket ?: return@register
-            if (! packet.type.equalsOneOf(MenuType.GENERIC_9x3, MenuType.GENERIC_9x6)) return@register
-            if (! packet.title.unformattedText.equalsOneOf("Chest", "Large Chest")) return@register
-            ServerboundContainerClosePacket(packet.containerId).send()
-            event.isCanceled = true
-        }
-
-        register<GameStartEvent> { ModCompatibility.disableBlockstateCulling() }
-        //#endif
 
         register<RenderWorldEvent> {
             if (clicked.isEmpty()) return@register
@@ -116,40 +91,53 @@ object Secrets: Feature() {
                 clicked[event.pos] = System.currentTimeMillis()
             }
         }
+
+        //#if CHEAT
+        register<MainThreadPacketReceivedEvent.Pre> {
+            if (! closeChest.value) return@register
+            if (! LocationUtils.inDungeon) return@register
+            if (LocationUtils.inBoss) return@register
+            val packet = event.packet as? ClientboundOpenScreenPacket ?: return@register
+            if (! packet.type.equalsOneOf(MenuType.GENERIC_9x3, MenuType.GENERIC_9x6)) return@register
+            if (! packet.title.unformattedText.equalsOneOf("Chest", "Large Chest")) return@register
+            ServerboundContainerClosePacket(packet.containerId).send()
+            event.isCanceled = true
+        }
+
+        register<GameStartEvent> { if (lever.value || button.value) ModCompatibility.disableBlockstateCulling() }
+        //#endif
     }
 
     //#if CHEAT
     override fun onEnable() {
         super.onEnable()
-        ModCompatibility.disableBlockstateCulling()
+        if (lever.value || button.value) ModCompatibility.disableBlockstateCulling()
     }
 
     @JvmStatic
     fun getButtonShape(state: BlockState): VoxelShape {
         val face = state.getValue(FaceAttachedHorizontalDirectionalBlock.FACE)
-        val direction = state.getValue(FaceAttachedHorizontalDirectionalBlock.FACING)
+        val facing = state.getValue(FaceAttachedHorizontalDirectionalBlock.FACING)
         val powered = state.getValue(ButtonBlock.POWERED)
+        val base = Block.boxZ(buttonSize.value * 16.0, 16.0 - if (powered) 1 else 2, 16.0)
+        return Shapes.rotateAttachFace(base)[face]?.get(facing) !!
+    }
 
-        val f2 = (if (powered) 1 else 2) / 16.0
-        return when (face) {
-            AttachFace.CEILING -> Shapes.box(0.0, 1.0 - f2, 0.0, 1.0, 1.0, 1.0)
-            AttachFace.FLOOR -> Shapes.box(0.0, 0.0, 0.0, 1.0, 0.0 + f2, 1.0)
-            else -> when (direction) {
-                Direction.EAST -> Shapes.box(0.0, 0.0, 0.0, f2, 1.0, 1.0)
-                Direction.WEST -> Shapes.box(1.0 - f2, 0.0, 0.0, 1.0, 1.0, 1.0)
-                Direction.SOUTH -> Shapes.box(0.0, 0.0, 0.0, 1.0, 1.0, f2)
-                Direction.NORTH -> Shapes.box(0.0, 0.0, 1.0 - f2, 1.0, 1.0, 1.0)
-                Direction.UP -> Shapes.box(0.0, 0.0, 0.0, 1.0, 0.0 + f2, 1.0)
-                Direction.DOWN -> Shapes.box(0.0, 1.0 - f2, 0.0, 1.0, 1.0, 1.0)
-            }
-        }
+    @JvmStatic
+    fun getLeverShape(state: BlockState): VoxelShape {
+        val face = state.getValue(FaceAttachedHorizontalDirectionalBlock.FACE)
+        val facing = state.getValue(FaceAttachedHorizontalDirectionalBlock.FACING)
+        val base = Block.boxZ(leverSize.value * 16.0, leverSize.value * 16.0, 16.0 - leverSize.value * 16.0, 16.0)
+        return Shapes.rotateAttachFace(base)[face]?.get(facing) !!
     }
 
     private val blackListedLevers = listOf(
-        BlockPos(61, 136, 142), BlockPos(60, 136, 142), BlockPos(59, 136, 142),
-        BlockPos(62, 135, 142), BlockPos(61, 135, 142), BlockPos(59, 135, 142),
-        BlockPos(58, 135, 142), BlockPos(62, 134, 142), BlockPos(61, 134, 142),
-        BlockPos(59, 134, 142), BlockPos(58, 134, 142), BlockPos(61, 133, 142),
+        BlockPos(61, 136, 142), BlockPos(60, 136, 142),
+        BlockPos(59, 136, 142), BlockPos(62, 135, 142),
+        BlockPos(61, 135, 142), BlockPos(59, 135, 142),
+        BlockPos(58, 135, 142), BlockPos(62, 134, 142),
+        BlockPos(61, 134, 142), BlockPos(59, 134, 142),
+        BlockPos(58, 134, 142), BlockPos(61, 133, 142),
         BlockPos(60, 133, 142), BlockPos(59, 133, 142)
     )
 
