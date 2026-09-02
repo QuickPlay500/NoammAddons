@@ -8,7 +8,6 @@ import com.github.noamm9.config.types.DropdownSetting
 import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
-import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.Utils.send
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -112,17 +111,17 @@ object AutoIronTrade: Feature("Automatically completes iron trades when a villag
             else ChatUtils.modMessage("&cCould not trade - out of stock or missing items.")
         }
 
-        if (closeAfter.value && completed > 0) ThreadUtils.runOnMcThread { mc.player?.closeContainer() }
+        if (closeAfter.value && completed > 0) mc.execute { mc.player?.closeContainer() }
     }
 
-    private fun selectTrade(menu: MerchantMenu, index: Int) = ThreadUtils.runOnMcThread {
+    private fun selectTrade(menu: MerchantMenu, index: Int) = mc.execute {
         menu.setSelectionHint(index)
         menu.tryMoveItems(index)
         ServerboundSelectTradePacket(index).send()
     }
 
-    private fun takeResult(menu: MerchantMenu) = ThreadUtils.runOnMcThread {
-        val player = mc.player ?: return@runOnMcThread
+    private fun takeResult(menu: MerchantMenu) = mc.execute {
+        val player = mc.player ?: return@execute
         mc.gameMode?.handleContainerInput(menu.containerId, RESULT_SLOT, 0, ContainerInput.QUICK_MOVE, player)
     }
 
