@@ -5,7 +5,6 @@ import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.impl.floor7.terminals.impl.*
 import com.github.noamm9.init.types.ISelfInit
-import com.github.noamm9.mixin.IServerboundInteractPacket
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ThreadUtils
@@ -37,6 +36,8 @@ object TerminalListener: ISelfInit {
         EventBus.register<ContainerFullyOpenedEvent> {
             if (LocationUtils.F7Phase != 3) return@register
             val handler = Terminal.fromTitle(event.title.string) ?: return@register reset()
+            if (inTerm) reset()
+
             inTerm = true
             initialOpenTick = DungeonListener.currentTime
             initialOpenTime = System.currentTimeMillis()
@@ -77,6 +78,13 @@ object TerminalListener: ISelfInit {
         }
 
         EventBus.register<PacketEvent.Sent> {
+            fun hit(id: Int) {
+                val entity = mc.level?.getEntity(id) as? ArmorStand ?: return
+                if (entity.displayName.unformattedText != "Inactive Terminal") return
+
+                if (interactCooldown > 0 || lastWindowId != - 1) event.isCanceled = true else interactCooldown = 15
+            }
+
             when (event.packet) {
                 is ServerboundContainerClickPacket -> {
                     if (! inTerm) return@register
@@ -92,12 +100,8 @@ object TerminalListener: ISelfInit {
 
                 is ServerboundContainerClosePacket -> if (inTerm) reset()
 
-                is IServerboundInteractPacket -> {
-                    val entity = mc.level?.getEntity(event.packet.entityId) as? ArmorStand ?: return@register
-                    if (entity.displayName.unformattedText != "Inactive Terminal") return@register
-
-                    if (interactCooldown > 0 || lastWindowId != - 1) event.isCanceled = true else interactCooldown = 15
-                }
+                is ServerboundInteractPacket -> hit(event.packet.entityId)
+                is ServerboundAttackPacket -> hit(event.packet.entityId)
             }
         }
 
@@ -128,7 +132,8 @@ object TerminalListener: ISelfInit {
     }
 
     private fun Terminal.sync(container: AbstractContainerMenu, slotId: Int = 0, stack: ItemStack = ItemStack.EMPTY) {
-        container.items.toList().subList(0, slotCount).forEachIndexed { index, stack ->
+        val items = container.items
+        items.subList(0, minOf(items.size, slotCount)).forEachIndexed { index, stack ->
             currentItems[index] = stack
         }
 

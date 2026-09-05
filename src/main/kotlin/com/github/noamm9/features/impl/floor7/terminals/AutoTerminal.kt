@@ -17,9 +17,9 @@ import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 
 object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     private val randomDelay by ToggleSetting("Random Delay", true).withDescription("Normal distributed by min and max").section("Settings").jsonName("randomDelay")
-    private val autoDelay by SliderSetting("Click Delay", 150.0, 100.0, 500.0, 1.0).withDescription("Fixed delay between clicks in milliseconds.").hideIf { randomDelay.value }.jsonName("autoDelay")
-    private val minRandomDelay by SliderSetting("Min Random Delay", 120.0, 80.0, 500.0, 1.0).withDescription("The minimum possible delay").showIf { randomDelay.value }.jsonName("minRandomDelay")
-    private val maxRandomDelay by SliderSetting("Max Random Delay", 150.0, 120.0, 500.0, 1.0).withDescription("The maximum possible delay").showIf { randomDelay.value }.jsonName("maxRandomDelay")
+    private val autoDelay by SliderSetting("Click Delay", 150, 80, 500, 10, "ms").withDescription("Fixed delay between clicks in milliseconds.").hideIf { randomDelay.value }.jsonName("autoDelay")
+    private val minRandomDelay by SliderSetting("Min Random Delay", 120, 50, 500, 10, "ms").withDescription("The minimum possible delay").showIf { randomDelay.value }.jsonName("minRandomDelay")
+    private val maxRandomDelay by SliderSetting("Max Random Delay", 150, 80, 500, 10, "ms").withDescription("The maximum possible delay").showIf { randomDelay.value }.jsonName("maxRandomDelay")
     private val clickOrder by DropdownSetting("Click Order", 2, listOf("None", "Random", "Human", "Skizo")).withDescription("Human: Logic pathing. Skizo: Chaotic/Furthest.")
     private val invwalk by ToggleSetting("Fake InvWalk").withDescription("Draws the Term name and progress on screen rather then the solution")
 
@@ -46,8 +46,8 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
             shouldDraw = { TerminalListener.currentHandler?.enabled() == true }
         ) { ctx, e ->
             val handler = if (e) NumberTerminal else TerminalListener.currentHandler !!
-            val maxClicks = handler.maxClicks()
-            val completed = handler.completedClicks()
+            val maxClicks = if (e) NumberTerminal.gridSize.run { first * second } else handler.maxClicks()
+            val completed = if (e) 4 else handler.completedClicks()
 
             val title = "§3In Terminal (${handler.displayName})"
             val progress = "§b[${completed.coerceIn(0, maxClicks)}/$maxClicks]${handler.progressSuffix()}"
@@ -56,7 +56,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
             if (maxClicks != null && maxClicks > 0) ctx.drawCenteredString(progress, 0, - 10f)
 
             maxOf(title.width(), progress.width()).toFloat() to 20f
-        }.apply {
+        } defaults {
             x = Resolution.width / 2
             y = Resolution.height / 2 - Resolution.height / 10
             scale = 3f
@@ -82,7 +82,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
             lastClickTime = System.currentTimeMillis()
             lastClickedSlot = actualSlot
 
-            if (buttonRow == 2) return@register
+            if (buttonRow == 3) return@register // todo change back to 2
             if (! melodySkip.value) return@register
             if (! melodySkipFirstRow.value && buttonRow == 0 && current != 4) return@register
             if (! (melodySkipMode.value == 1 || (melodySkipMode.value == 0 && (current == 0 || current == 4)))) return@register
@@ -91,6 +91,13 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
             val check = { TerminalListener.inTerm && TerminalListener.currentHandler is MelodyTerminal && windowId == TerminalListener.lastWindowId }
             if (buttonRow < 3) ThreadUtils.scheduledTask(1) { if (check()) clickSlot(actualSlot + 9) }
             if (buttonRow < 2) ThreadUtils.scheduledTask(2) { if (check()) clickSlot(actualSlot + 18) }
+            if (buttonRow < 1) ThreadUtils.scheduledTask(3) { if (check()) clickSlot(actualSlot + 27) } // todo remove when mel 3
+        }
+
+        register<TerminalEvent.SlotUpdate> {
+            if (! autoMelody.value) return@register
+            if (event.handler !is MelodyTerminal) return@register
+            lastClickedSlot = null
         }
 
         register<TickEvent.Server> {
@@ -158,12 +165,12 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     private fun getDelay() = when {
         TerminalListener.checkFcDelay() -> FIRST_CLICK_DELAY * 50
         randomDelay.value -> {
-            val min = minRandomDelay.value.toInt().coerceAtLeast(0)
-            val max = maxRandomDelay.value.toInt().coerceAtLeast(0)
+            val min = minRandomDelay.value.coerceAtLeast(0)
+            val max = maxRandomDelay.value.coerceAtLeast(0)
             if (min == max) min else MathUtils.gaussianRandom(minOf(min, max), maxOf(min, max))
         }
 
-        else -> autoDelay.value.toInt()
+        else -> autoDelay.value
     }.coerceAtLeast(0)
 
     private fun clickSlot(slot: Int) = TerminalClick(slot).send()

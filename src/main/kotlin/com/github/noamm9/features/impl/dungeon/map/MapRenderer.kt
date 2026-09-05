@@ -1,19 +1,17 @@
 package com.github.noamm9.features.impl.dungeon.map
 
-import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.MOD_ID
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.utils.ColorUtils.colorCodeByPercent
 import com.github.noamm9.utils.ColorUtils.colorizeScore
+import com.github.noamm9.utils.ColorUtils.lerp
 import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.DungeonPlayer
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.dungeons.map.core.*
-import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
-import com.github.noamm9.utils.dungeons.map.handlers.HotbarMapScanner
-import com.github.noamm9.utils.dungeons.map.handlers.ScoreCalculation
+import com.github.noamm9.utils.dungeons.map.handlers.*
 import com.github.noamm9.utils.dungeons.map.utils.MapUtils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
@@ -111,9 +109,11 @@ object MapRenderer: HudElement() {
                 color = color.darker().darker()
             }
 
-            if (tile is RoomTile && tile.uniqueRoom?.hasMimic == true && MapConfig.highlightMimicRoom.value && NoammAddons.isCheat) {
-                color = MathUtils.lerpColor(color, MapConfig.colorMimic.value, 0.2)
+            //#if CHEAT
+            if (tile is RoomTile && tile.uniqueRoom?.hasMimic == true && MapConfig.highlightMimicRoom.value) {
+                color = color.lerp(MapConfig.colorMimic.value, 0.2)
             }
+            //#endif
 
             val xOffset = (x shr 1) * (MapUtils.mapRoomSize + connectorSize)
             val yOffset = (y shr 1) * (MapUtils.mapRoomSize + connectorSize)
